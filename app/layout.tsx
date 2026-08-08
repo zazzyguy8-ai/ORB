@@ -15,24 +15,25 @@ const playfair = Playfair_Display({
   weight: ['400', '700'],
 })
 
+/**
+ * Root metadata describes CULTSCAN, which owns `/`. The DIRE ORB pages carry
+ * their own metadata from the (orb) route group and override this.
+ */
 export const metadata: Metadata = {
-  title: 'DIRE ORB',
-  description: 'The orb already remembers you.',
+  title: 'CULTSCAN — narrative survivability for memecoins',
+  description:
+    'Every other tool checks the contract. CULTSCAN scores whether the story survives a group chat, a red candle, and week two.',
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'DIRE ORB',
-  },
   openGraph: {
-    title: 'DIRE ORB',
-    description: 'An ancient intelligence reads the hidden architecture of your soul.',
+    title: 'CULTSCAN',
+    description:
+      'Contract safety is solved. Narrative survivability is not. Score the thing people actually decide on.',
     type: 'website',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#07090A',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -51,11 +52,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="bg-black min-h-screen overflow-x-hidden">
-        <div className="scanline" />
-        <div className="vignette" />
-        {children}
-      </body>
+      <body className="bg-black min-h-screen overflow-x-hidden">{children}</body>
     </html>
   )
 }

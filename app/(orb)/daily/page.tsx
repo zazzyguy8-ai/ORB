@@ -30,7 +30,7 @@ export default function DailyPage() {
   useEffect(() => {
     const savedReading = localStorage.getItem('orb-reading')
     if (!savedReading) {
-      router.push('/')
+      router.push('/orb')
       return
     }
 
@@ -86,7 +86,7 @@ export default function DailyPage() {
 
       setLoaded(true)
     } catch {
-      router.push('/')
+      router.push('/orb')
     }
   }, [router])
 

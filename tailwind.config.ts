@@ -17,6 +17,18 @@ const config: Config = {
           accent: '#C084FC',
           danger: '#DC2626',
         },
+        // CULTSCAN: a terminal palette. Deliberately separate from the orb
+        // colours so the two products can diverge without stepping on each other.
+        cs: {
+          bg: '#07090A',
+          panel: '#0D1113',
+          line: '#1C2427',
+          text: '#D6E0DC',
+          dim: '#7B8B86',
+          green: '#3DFF9E',
+          amber: '#FFB03A',
+          red: '#FF4D4D',
+        },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],

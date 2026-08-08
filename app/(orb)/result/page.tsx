@@ -20,7 +20,7 @@ export default function ResultPage() {
   useEffect(() => {
     const saved = localStorage.getItem('orb-reading')
     if (!saved) {
-      router.push('/')
+      router.push('/orb')
       return
     }
 
@@ -28,7 +28,7 @@ export default function ResultPage() {
       const parsed = JSON.parse(saved) as OrbReading
       setReading(parsed)
     } catch {
-      router.push('/')
+      router.push('/orb')
       return
     }
 
