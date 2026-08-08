@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# A second push to the same branch cancels the run still in flight, so the
+# queue never fills with results nobody is going to read.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Catches the failure modes typechecking misses: a bad import boundary
+      # between server and client components, a route that will not compile,
+      # a page that throws while prerendering. No secrets are needed — every
+      # module reads its keys lazily, so a build with none configured is a
+      # real build rather than a special case.
+      - name: Build
+        run: npm run build

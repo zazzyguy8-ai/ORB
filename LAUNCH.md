@@ -82,9 +82,13 @@ npm run build
 ```
 
 Push to Vercel, set the same env vars in the project settings, point a domain at
-it. The product lives at `/cultscan`; the existing ORB experience at `/` is
-untouched and shares nothing with it but the deployment. Point the domain root
-at `/cultscan` with a rewrite when you are ready to make this the main thing.
+it. CULTSCAN is the site root — a domain pointed here lands straight on the
+product, which is what the videos need.
+
+The earlier DIRE ORB experience still lives in the same deployment at `/orb`,
+untouched and sharing nothing with CULTSCAN but the build. It is out of the way
+rather than deleted; delete `app/(orb)/`, `lib/claude.ts`, `lib/archetypes.ts`,
+`lib/questions.ts` and the ORB API routes when you are sure you are done with it.
 
 ---
 

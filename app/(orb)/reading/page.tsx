@@ -20,7 +20,7 @@ export default function ReadingPage() {
     const questionTexts = localStorage.getItem('orb-question-texts')
 
     if (!answers || !hesitations || !questionTexts) {
-      router.push('/')
+      router.push('/orb')
       return
     }
 
@@ -131,7 +131,7 @@ export default function ReadingPage() {
             </p>
             <p className="text-xs font-light text-orb-text/50">{errorMsg}</p>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/orb')}
               className="text-xs tracking-[0.3em] uppercase font-thin text-orb-accent/70 hover:text-orb-accent transition-colors mt-4"
             >
               Return to the beginning

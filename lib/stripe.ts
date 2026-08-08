@@ -48,8 +48,8 @@ export async function createCheckoutSession(
     // The tier travels with the session so the return leg does not have to
     // trust anything the browser tells us about what was purchased.
     metadata: { tier: tier.id },
-    success_url: `${origin}/cultscan?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/cultscan?cancelled=1`,
+    success_url: `${origin}/?paid=1&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/?cancelled=1`,
     // Stripe collects this; it is the only channel for a refund conversation.
     billing_address_collection: 'auto',
   })
