@@ -37,10 +37,14 @@ The app degrades honestly rather than failing:
 
 Nothing is ever substituted with fake data. A category we could not check is displayed as *not checked*, never as clean.
 
-### Database
+### Deploying
+
+Follow **[docs/DEPLOY.md](docs/DEPLOY.md)** — database, environment variables,
+cron caveats, and the post-deploy verification that catches a provider whose
+response shape has changed.
 
 ```bash
-# Supabase SQL editor, or: supabase db push
+# Database, in short: Supabase SQL editor, or
 psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql
 ```
 
