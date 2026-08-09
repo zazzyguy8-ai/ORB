@@ -8,6 +8,13 @@ export class AnthropicProvider implements LlmProvider {
 
   private readonly client: Anthropic;
 
+  /**
+   * Whether this model accepts `output_config.effort`. Older and smaller models
+   * reject it with a 400, and a hardcoded model list would rot on every release
+   * — so we learn it from the first response instead and remember the answer.
+   */
+  private supportsEffort = true;
+
   constructor(apiKey: string, private readonly model: string) {
     this.client = new Anthropic({ apiKey, maxRetries: 0 });
   }
@@ -16,16 +23,37 @@ export class AnthropicProvider implements LlmProvider {
     // maxRetries is 0 and the timeout is short by design: this call sits in the
     // user's latency path, and a slow retry is worse than the deterministic
     // fallback that is already computed and waiting.
-    const response = await this.client.messages.create(
-      {
-        model: this.model,
-        max_tokens: req.maxTokens,
-        temperature: 0.2,
-        system: req.system,
-        messages: [{ role: 'user', content: req.user }],
-      },
-      { timeout: req.timeoutMs },
-    );
+    //
+    // Two model-specific notes, both load-bearing on current models:
+    //  - No temperature/top_p. Sampling parameters are rejected outright on the
+    //    current Opus and Sonnet generations.
+    //  - effort "low", and thinking left at its default. Thinking is on by
+    //    default and max_tokens caps thinking plus text together, so the budget
+    //    below is sized for both. Selecting three sentences from a supplied list
+    //    does not need deep reasoning, and this path has a 3.5s deadline.
+    const send = (withEffort: boolean) =>
+      this.client.messages.create(
+        {
+          model: this.model,
+          max_tokens: req.maxTokens,
+          ...(withEffort ? { output_config: { effort: 'low' as const } } : {}),
+          system: req.system,
+          messages: [{ role: 'user', content: req.user }],
+        },
+        { timeout: req.timeoutMs },
+      );
+
+    let response;
+    try {
+      response = await send(this.supportsEffort);
+    } catch (err) {
+      // A 400 while sending effort means this model does not take it. Drop it,
+      // remember, and retry once — the alternative is a model that silently
+      // never produces an explanation.
+      if (!this.supportsEffort || !(err instanceof Anthropic.BadRequestError)) throw err;
+      this.supportsEffort = false;
+      response = await send(false);
+    }
 
     return response.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')

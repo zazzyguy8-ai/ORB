@@ -212,7 +212,7 @@ export async function explain(input: {
       // Cap the fact list: beyond ~24 items we are paying latency for facts that
       // will never make the top three anyway.
       user: buildUserPrompt({ ...input, evidence: input.evidence.slice(0, 24) }),
-      maxTokens: 400,
+      maxTokens: 2048,
       timeoutMs: env.aiTimeoutMs,
     });
 

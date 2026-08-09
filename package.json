@@ -13,7 +13,7 @@
     "validate": "tsx scripts/validate.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.27.3",
+    "@anthropic-ai/sdk": "^0.116.0",
     "@supabase/supabase-js": "^2.45.4",
     "next": "14.2.15",
     "react": "^18.3.1",

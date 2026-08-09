@@ -84,10 +84,10 @@ Persistence never blocks the response.
 | Solana RPC `getTokenLargestAccounts` | 2500 ms deadline | Public endpoint is the #1 risk; 429s are common. Cached 60 s. |
 | Helius | 2500 ms deadline | Optional. |
 | Derive + score + risk | < 5 ms | Pure CPU. |
-| **LLM explanation** | **3500 ms soft deadline** | The dominant cost. Mitigated by: tiny output cap (~220 tokens), no tool use, evidence pre-computed, and a deterministic fallback that renders instantly if the deadline is hit. |
+| **LLM explanation** | **5000 ms soft deadline** | The dominant cost, and measured, not guessed: `claude-opus-5` and `claude-sonnet-5` both land at ~3.5 s on this prompt at `effort: low`, `claude-haiku-4-5` at ~2 s. The deadline sits above that with headroom; a deterministic fallback renders instantly if it is missed. |
 | Persistence | 0 ms in path | Fire-and-forget after the response is built. |
 
-Expected p50 with warm providers: **~1.5–3 s**. Worst case is bounded at ~6 s by the deadlines — the pipeline never waits indefinitely on any provider.
+Expected p50 with warm providers: **~4–5 s** — roughly 1 s of parallel data collection plus the ~3.5 s LLM call. Worst case is bounded at ~7.5 s by the deadlines; the pipeline never waits indefinitely on any provider. Setting `ANTHROPIC_MODEL=claude-haiku-4-5` takes p50 to roughly 3 s at some cost in phrasing quality.
 
 ## 5. Database schema
 
@@ -124,6 +124,8 @@ Three-part, all server-side (`lib/ai/`):
 1. **System prompt** — role, the hard bans from spec §5 ("guaranteed", "100x", "risk-free"), the no-invention rule (§4), and the output contract (strict JSON).
 2. **Evidence payload** — a machine-built list of `EvidenceItem { id, text, polarity, magnitude }` produced deterministically from the metrics. The model may only cite `id`s **from this list**.
 3. **Validation** — the response is parsed as JSON, every cited `id` must exist, banned phrases are rejected, length is capped. Any violation ⇒ deterministic fallback (top-ranked evidence rendered verbatim). The model therefore *cannot* introduce a number that the backend did not compute.
+
+Request shape: no sampling parameters (rejected on current models), `effort: low` (the task is selection, not reasoning), and thinking left at its default — `max_tokens` is sized for thinking plus text together. Models that reject `effort` are detected from the first 400 and retried without it, so a smaller model degrades to slightly slower rather than silently never explaining.
 
 The decision, confidence and flags are **not** produced by the model — they arrive pre-computed and the model is told so.
 

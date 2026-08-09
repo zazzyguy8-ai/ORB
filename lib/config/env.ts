@@ -20,7 +20,7 @@ function num(name: string, fallback: number): number {
 
 export const env = {
   anthropicApiKey: str('ANTHROPIC_API_KEY'),
-  anthropicModel: str('ANTHROPIC_MODEL') ?? 'claude-sonnet-4-5',
+  anthropicModel: str('ANTHROPIC_MODEL') ?? 'claude-opus-5',
 
   supabaseUrl: str('NEXT_PUBLIC_SUPABASE_URL'),
   supabaseAnonKey: str('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
@@ -37,7 +37,7 @@ export const env = {
   /** Per-provider network deadline. Nothing in the hot path may exceed it. */
   providerTimeoutMs: num('PROVIDER_TIMEOUT_MS', 2500),
   /** Soft deadline for the LLM call; on expiry we render the deterministic text. */
-  aiTimeoutMs: num('AI_TIMEOUT_MS', 3500),
+  aiTimeoutMs: num('AI_TIMEOUT_MS', 5000),
 
   anonAnalysesPerDay: num('ANON_ANALYSES_PER_DAY', 3),
   ipRequestsPerMinute: num('IP_REQUESTS_PER_MINUTE', 10),
