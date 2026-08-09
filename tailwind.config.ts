@@ -1,40 +1,44 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        orb: {
-          black: '#000000',
-          violet: '#7B2FBE',
-          deep: '#4A0E8F',
-          text: '#E8E8E8',
-          accent: '#C084FC',
-          danger: '#DC2626',
+        ink: {
+          950: '#07080b',
+          900: '#0b0d12',
+          800: '#12151c',
+          700: '#1a1e28',
+          600: '#252b38',
+        },
+        signal: {
+          buy: '#22c55e',
+          watch: '#f5b638',
+          avoid: '#f0483e',
         },
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
-      },
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'spin-slow': 'spin 20s linear infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Inter', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       keyframes: {
-        glow: {
-          '0%': { boxShadow: '0 0 20px #7B2FBE, 0 0 40px #4A0E8F' },
-          '100%': { boxShadow: '0 0 40px #C084FC, 0 0 80px #7B2FBE' },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(6px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'pulse-soft': {
+          '0%, 100%': { opacity: '0.35' },
+          '50%': { opacity: '0.85' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 220ms ease-out both',
+        'pulse-soft': 'pulse-soft 1.4s ease-in-out infinite',
       },
     },
   },
   plugins: [],
-}
-export default config
+};
+
+export default config;

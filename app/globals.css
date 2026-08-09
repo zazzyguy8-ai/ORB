@@ -3,115 +3,40 @@
 @tailwind utilities;
 
 :root {
-  --orb-violet: #7B2FBE;
-  --orb-deep: #4A0E8F;
-  --orb-accent: #C084FC;
-  --orb-text: #E8E8E8;
-  --orb-danger: #DC2626;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-  overflow-x: hidden;
+  color-scheme: dark;
 }
 
 body {
-  background: #000000;
-  color: #E8E8E8;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  @apply bg-ink-950 text-slate-200 antialiased;
+  background-image: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(56, 189, 248, 0.08),
+    transparent
+  );
+  background-repeat: no-repeat;
 }
 
-::selection {
-  background: #7B2FBE44;
-  color: #C084FC;
-}
+@layer components {
+  .card {
+    @apply rounded-xl border border-ink-700 bg-ink-900/70 p-5;
+  }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 2px;
-}
+  .label {
+    @apply text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500;
+  }
 
-::-webkit-scrollbar-track {
-  background: #000;
-}
+  .btn-primary {
+    @apply rounded-lg bg-slate-100 px-6 py-3 text-sm font-semibold text-ink-950
+           transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #7B2FBE;
-  border-radius: 2px;
-}
+  .btn-ghost {
+    @apply rounded-lg border border-ink-600 px-4 py-2 text-sm text-slate-300
+           transition hover:border-ink-600 hover:bg-ink-800;
+  }
 
-/* Orb glow text */
-.text-glow {
-  text-shadow: 0 0 20px rgba(192, 132, 252, 0.8), 0 0 40px rgba(123, 47, 190, 0.6);
-}
-
-.text-glow-sm {
-  text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
-}
-
-/* Particle canvas positioning */
-.particle-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Button hover glow */
-.orb-button {
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.orb-button::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(135deg, #7B2FBE, #C084FC);
-  opacity: 0;
-  border-radius: inherit;
-  filter: blur(8px);
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.orb-button:hover::after {
-  opacity: 0.6;
-}
-
-/* Scan line effect */
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-.scanline {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(transparent, rgba(123, 47, 190, 0.15), transparent);
-  animation: scanline 8s linear infinite;
-  pointer-events: none;
-  z-index: 100;
-}
-
-/* Vignette overlay */
-.vignette {
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.8) 100%);
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
+  .input {
+    @apply w-full rounded-lg border border-ink-600 bg-ink-900 px-4 py-3 font-mono text-sm
+           text-slate-100 placeholder:text-slate-600 focus:border-slate-500 focus:outline-none;
+  }
 }

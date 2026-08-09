@@ -1,0 +1,26 @@
+{
+  "code": 1,
+  "message": "OK",
+  "result": {
+    "Fixture1111111111111111111111111111111111111": {
+      "metadata": { "mutable": "1", "name": "Fixture Coin", "symbol": "FIX" },
+      "mintable": { "status": "0", "authority": [] },
+      "freezable": { "status": "0", "authority": [] },
+      "closable": { "status": "0" },
+      "transfer_fee": {},
+      "transfer_hook": [],
+      "holder_count": "1840",
+      "total_supply": "1000000000",
+      "creators": [{ "address": "CreatorWa11et11111111111111111111111111111111" }],
+      "holders": [
+        { "account": "CreatorWa11et11111111111111111111111111111111", "percent": "0.021" },
+        { "account": "Whale1111111111111111111111111111111111111111", "percent": "0.058" },
+        { "account": "Whale2222222222222222222222222222222222222222", "percent": "0.031" }
+      ],
+      "lp_holders": [
+        { "account": "1nc1nerator11111111111111111111111111111111", "percent": "0.97", "tag": "burn address", "is_locked": 1 },
+        { "account": "LpHo1der1111111111111111111111111111111111", "percent": "0.03", "is_locked": 0 }
+      ]
+    }
+  }
+}
