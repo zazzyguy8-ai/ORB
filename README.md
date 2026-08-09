@@ -44,6 +44,26 @@ Nothing is ever substituted with fake data. A category we could not check is dis
 psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql
 ```
 
+### First deploy — run the provider probe
+
+The data providers are implemented against documented response contracts but
+were never exercised against the live APIs during development (see
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §11). Before trusting a single
+analysis, check them:
+
+```bash
+curl -H "authorization: Bearer $CRON_SECRET" \
+     "https://<your-host>/api/diagnostics" | jq .verdict
+```
+
+An empty `verdict` array means every provider is reachable and parsing cleanly.
+Otherwise each line names the problem in words — an unreachable host, a rate
+limit, or the one that matters most: a provider that answers fine but parses to
+all-nulls, which is what a renamed upstream field looks like. The full response
+also reports per-field coverage, so you can see exactly which fields arrived.
+
+Add `?address=<mint>` to probe a specific token instead of the default.
+
 ### Outcome tracking
 
 `vercel.json` schedules `/api/cron/snapshots` every minute. It records the price at +5m, +15m, +1h, +6h and +24h after each analysis, so the model can be measured rather than trusted. Set `CRON_SECRET`; the endpoint refuses to run without it.
@@ -54,7 +74,7 @@ psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Full suite (89 tests, no network required) |
+| `npm test` | Full suite (102 tests, no network required) |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npx tsx scripts/validate.ts tokens.txt` | Run the pipeline over real tokens and report latency, coverage and label consistency (needs network) |
 

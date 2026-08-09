@@ -107,6 +107,7 @@ Metrics are stored **both** as a JSONB blob on `analyses` (fast read-back for hi
 | `/api/analysis/[id]` | GET | Single stored analysis + outcomes. |
 | `/api/cron/snapshots` | POST/GET | Records due price checkpoints. Protected by `CRON_SECRET`. |
 | `/api/health` | GET | Provider availability + config diagnostics. No secrets echoed. |
+| `/api/diagnostics` | GET | **Live** provider probe: host reachability + per-field parse coverage + a plain-language verdict. Protected by `CRON_SECRET`. Run this first after any deploy. |
 
 ## 7. Scoring architecture
 
