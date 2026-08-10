@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Orb } from '@/components/Orb';
+import { Reveal } from '@/components/Reveal';
 import { formatPrice, getPlans } from '@/lib/config/plans';
 
 /**
@@ -10,155 +12,216 @@ export default function LandingPage() {
   const plans = getPlans();
 
   return (
-    <div className="space-y-24 py-8 sm:py-14">
-      <section className="relative text-center">
-        {/* Wide, soft glow behind the headline so the type sits in light rather
-            than on a flat panel. Pointer-events off — it is pure atmosphere. */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-0 -z-10 h-64 w-[42rem]
-                     -translate-x-1/2 -translate-y-1/3 rounded-full
-                     bg-[radial-gradient(closest-side,rgba(46,232,138,0.16),transparent)] blur-2xl"
-          aria-hidden
-        />
-        <span className="pill mx-auto mb-6 w-fit">
-          <span className="h-1.5 w-1.5 rounded-full bg-signal-buy" aria-hidden />
-          Solana · read-only · no wallet connection
-        </span>
-
-        <h1 className="animate-fade-up mx-auto max-w-3xl text-[2.7rem] font-bold leading-[1.02] tracking-tightest text-slate-50 sm:text-[4.2rem]">
-          AI memecoin analysis
-          <br />
-          <span className="bg-gradient-to-r from-signal-buy via-emerald-300 to-sky-400 bg-clip-text text-transparent">
-            in seconds
+    <div className="space-y-28 py-6 sm:py-12">
+      {/* ------------------------------------------------------------------ */}
+      {/* Hero                                                                */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="text-center lg:text-left">
+          <span className="pill animate-fade-up mx-auto w-fit lg:mx-0">
+            <span className="h-1.5 w-1.5 rounded-full bg-signal-buy" aria-hidden />
+            Solana · read-only · no wallet connection
           </span>
-        </h1>
 
-        <p
-          className="animate-fade-up mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400"
-          style={{ animationDelay: '80ms' }}
-        >
-          Paste a token contract. Get BUY / WATCH / AVOID with the evidence behind it — instead of
-          checking five tools by hand.
-        </p>
+          <h1
+            className="animate-fade-up mt-6 text-[2.9rem] font-semibold leading-[1.02] tracking-tightest text-white sm:text-[4.4rem]"
+            style={{ animationDelay: '60ms' }}
+          >
+            Should you buy
+            <br />
+            <span className="text-gradient animate-sweep">this coin?</span>
+          </h1>
 
-        <div
-          className="animate-fade-up mt-9 flex flex-wrap items-center justify-center gap-3"
-          style={{ animationDelay: '160ms' }}
-        >
-          <Link href="/app" className="btn-primary">
-            TRY FREE
-          </Link>
-          <Link href="/track-record" className="btn-ghost">
-            See the track record
-          </Link>
-        </div>
-      </section>
+          <p
+            className="animate-fade-up mx-auto mt-6 max-w-lg text-lg leading-relaxed text-slate-400 lg:mx-0"
+            style={{ animationDelay: '140ms' }}
+          >
+            Paste a contract address. Get BUY, WATCH or AVOID in seconds — with the evidence
+            behind it, and a public record of how the last calls turned out.
+          </p>
 
-      <section>
-        <p className="label text-center">What you get back</p>
-        <div className="mx-auto mt-5 max-w-2xl overflow-hidden rounded-2xl border border-signal-watch/25 bg-gradient-to-b from-signal-watch/[0.07] to-transparent">
-          <div className="p-6 sm:p-8">
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-ink-600 bg-ink-800 text-sm font-bold text-slate-500">
-                EXA
-              </div>
-              <div>
-                <p className="text-2xl font-bold tracking-tightest text-slate-50">$EXAMPLE</p>
-                <p className="text-sm text-slate-400">Example Coin</p>
-              </div>
-              <p className="ml-auto font-mono text-xs text-slate-500">2.41s</p>
-            </div>
-
-            <div className="mt-7 flex items-center gap-6">
-              <div className="flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-full border-[7px] border-ink-700 border-t-signal-watch border-r-signal-watch">
-                <span className="tabular text-2xl font-bold text-slate-100">61</span>
-              </div>
-              <p className="text-6xl font-black leading-none tracking-tightest text-signal-watch drop-shadow-[0_0_28px_rgba(255,192,67,0.24)]">
-                WATCH
-              </p>
-            </div>
-
-            <div className="mt-7 border-t border-ink-700/70 pt-5">
-              <p className="label">Why</p>
-              <ul className="mt-2.5 space-y-2 text-[15px] leading-relaxed text-slate-200">
-                <li>• Volume over the last 5 minutes is running at 2.4x the hourly pace.</li>
-                <li>• Liquidity is 11.2% of market cap, and 96% of LP is burned.</li>
-                <li>• 1.62 buys for every sell over the last hour.</li>
-              </ul>
-            </div>
-
-            <div className="mt-5">
-              <p className="label">Risk</p>
-              <ul className="mt-2.5 space-y-2 text-[15px] leading-relaxed text-slate-300">
-                <li>• Top 10 holders control 38.4% of supply.</li>
-                <li>• The pair was created 41 minutes ago; there is no track record to judge.</li>
-              </ul>
-            </div>
+          <div
+            className="animate-fade-up mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
+            style={{ animationDelay: '220ms' }}
+          >
+            <Link href="/app" className="btn-primary">
+              Analyze a token
+            </Link>
+            <Link href="/track-record" className="btn-ghost">
+              See the track record
+            </Link>
           </div>
-          <p className="border-t border-ink-700/70 bg-ink-900/60 px-6 py-3 text-xs text-slate-600 sm:px-8">
-            Illustration of the output format. Not a past result and not a prediction.
+
+          <p
+            className="animate-fade-up mt-5 text-xs text-slate-600"
+            style={{ animationDelay: '300ms' }}
+          >
+            Free to try · no wallet, no signature, no seed phrase — ever.
           </p>
         </div>
+
+        <Orb className="animate-scale-in mx-auto w-[68%] max-w-[340px] lg:w-full lg:max-w-none" />
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Feature
-          index="01"
-          title="One paste, one answer"
-          body="Market data, security checks, holder concentration and creator risk are collected in parallel and reduced to a single call."
-        />
-        <Feature
-          index="02"
-          title="The numbers are ours, not the model’s"
-          body="Every metric is computed deterministically before the AI sees anything. The model selects and phrases evidence — it never invents a figure."
-        />
-        <Feature
-          index="03"
-          title="Scored against what happens next"
-          body="Every analysis records the price at +5m, +15m, +1h, +6h and +24h, so the model can be measured instead of trusted."
-          href="/track-record"
-          cta="See the scoreboard"
-        />
-      </section>
-
-      <section>
-        <p className="label text-center">Pricing</p>
-        <div className="mx-auto mt-5 grid max-w-2xl gap-4 sm:grid-cols-2">
-          {Object.values(plans).map((plan) => (
-            <div
-              key={plan.id}
-              className={`card ${plan.id === 'pro' ? 'border-slate-600/60 bg-ink-850/80' : ''}`}
-            >
-              <div className="flex items-baseline justify-between">
-                <h3 className="font-semibold text-slate-100">{plan.name}</h3>
-                <p className="text-sm font-medium text-slate-200">{formatPrice(plan)}</p>
+      {/* ------------------------------------------------------------------ */}
+      {/* The output                                                          */}
+      {/* ------------------------------------------------------------------ */}
+      <Reveal>
+        <section>
+          <p className="label text-center">What you get back</p>
+          <div className="ring-gradient mx-auto mt-6 max-w-2xl overflow-hidden rounded-4xl">
+            <div className="rounded-4xl bg-gradient-to-b from-ink-800/70 to-ink-950/70 p-6 backdrop-blur-xl sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-slate-400">
+                  EXA
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold tracking-tightest text-white">$EXAMPLE</p>
+                  <p className="text-sm text-slate-500">Example Coin</p>
+                </div>
+                <p className="tabular ml-auto font-mono text-xs text-slate-600">2.41s</p>
               </div>
-              <p className="tabular mt-1 text-xs text-slate-500">
-                {plan.analysesPerDay} analyses per day
-              </p>
-              <ul className="mt-4 space-y-1.5 text-sm text-slate-400">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex gap-2">
-                    <span className="text-signal-buy" aria-hidden>
-                      ✓
-                    </span>
-                    {feature}
+
+              {/* Wraps on a narrow phone: at 390px the verdict and the ring
+                  side by side push the word past the card edge. */}
+              <div className="mt-7 flex flex-wrap items-center gap-5 sm:gap-6">
+                <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center sm:h-[92px] sm:w-[92px]">
+                  <div className="absolute inset-0 rounded-full bg-signal-watch/20 blur-xl" />
+                  <div className="absolute inset-0 rounded-full border-[7px] border-white/[0.06]" />
+                  <div className="absolute inset-0 rounded-full border-[7px] border-transparent border-r-signal-watch border-t-signal-watch [transform:rotate(-30deg)]" />
+                  <span className="tabular relative font-mono text-2xl font-semibold text-white">
+                    61
+                  </span>
+                </div>
+                <div>
+                  <p className="text-5xl font-bold leading-none tracking-tightest text-signal-watch drop-shadow-[0_0_34px_rgba(255,199,92,0.35)] sm:text-6xl">
+                    WATCH
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Real momentum, real concentration risk.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-7 border-t border-white/[0.07] pt-5">
+                <p className="label">Why</p>
+                <ul className="mt-3 space-y-2 text-[15px] leading-relaxed text-slate-200">
+                  <li className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-buy" />
+                    Volume over the last 5 minutes is running at 2.4x the hourly pace.
                   </li>
-                ))}
-              </ul>
+                  <li className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-buy" />
+                    Liquidity is 11.2% of market cap, and 96% of LP is burned.
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-buy" />
+                    1.62 buys for every sell over the last hour.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-5">
+                <p className="label">Risk</p>
+                <ul className="mt-3 space-y-2 text-[15px] leading-relaxed text-slate-300">
+                  <li className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-avoid" />
+                    Top 10 holders control 38.4% of supply.
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-avoid" />
+                    The pair was created 41 minutes ago; there is no track record to judge.
+                  </li>
+                </ul>
+              </div>
+
+              <p className="mt-6 border-t border-white/[0.07] pt-4 text-xs text-slate-600">
+                Illustration of the output format. Not a past result and not a prediction.
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
+        </section>
+      </Reveal>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Why it can be trusted                                               */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="grid gap-4 sm:grid-cols-3">
+        {[
+          {
+            index: '01',
+            title: 'One paste, one answer',
+            body: 'Market data, security checks, holder concentration and creator risk are collected in parallel and reduced to a single call.',
+          },
+          {
+            index: '02',
+            title: 'The numbers are ours, not the model’s',
+            body: 'Every metric is computed deterministically before the AI sees anything. The model selects and phrases evidence — it never invents a figure.',
+          },
+          {
+            index: '03',
+            title: 'Scored against what happens next',
+            body: 'Every analysis records the price at +5m, +15m, +1h, +6h and +24h, so the model can be measured instead of trusted.',
+            href: '/track-record',
+            cta: 'See the scoreboard',
+          },
+        ].map((feature, index) => (
+          <Reveal key={feature.index} delay={index * 90}>
+            <Feature {...feature} />
+          </Reveal>
+        ))}
       </section>
 
-      <section className="mx-auto max-w-2xl rounded-2xl border border-ink-700/80 bg-ink-900/40 p-6">
-        <p className="font-semibold text-slate-200">What this is not</p>
-        <p className="mt-2 text-sm leading-relaxed text-slate-400">
-          ORB Signal does not predict prices and makes no claim about future performance. A BUY
-          classification means the available signals scored well against our model right now — it
-          is a research shortcut, not a guarantee. Memecoins routinely go to zero.
-        </p>
-      </section>
+      {/* ------------------------------------------------------------------ */}
+      {/* Pricing                                                             */}
+      {/* ------------------------------------------------------------------ */}
+      <Reveal>
+        <section>
+          <p className="label text-center">Pricing</p>
+          <div className="mx-auto mt-6 grid max-w-2xl gap-4 sm:grid-cols-2">
+            {Object.values(plans).map((plan) => (
+              <div
+                key={plan.id}
+                className={`card hover-lift card-hover h-full ${
+                  plan.id === 'pro' ? 'ring-gradient' : ''
+                }`}
+              >
+                <div className="flex items-baseline justify-between">
+                  <h3 className="font-semibold text-white">{plan.name}</h3>
+                  <p className="text-sm font-medium text-iris-200">{formatPrice(plan)}</p>
+                </div>
+                <p className="tabular mt-1 font-mono text-xs text-slate-500">
+                  {plan.analysesPerDay} analyses per day
+                </p>
+                <ul className="mt-5 space-y-2 text-sm text-slate-400">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex gap-2.5">
+                      <span className="text-iris-300" aria-hidden>
+                        ✓
+                      </span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      </Reveal>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* The disclaimer, given its own weight rather than hidden in a footer  */}
+      {/* ------------------------------------------------------------------ */}
+      <Reveal>
+        <section className="mx-auto max-w-2xl rounded-3xl border border-white/[0.07] bg-white/[0.02] p-7 backdrop-blur-md">
+          <p className="font-semibold text-white">What this is not</p>
+          <p className="mt-2.5 text-sm leading-relaxed text-slate-400">
+            ORB Signal does not predict prices and makes no claim about future performance. A BUY
+            classification means the available signals scored well against our model right now — it
+            is a research shortcut, not a guarantee. Memecoins routinely go to zero.
+          </p>
+        </section>
+      </Reveal>
     </div>
   );
 }
@@ -177,14 +240,14 @@ function Feature({
   cta?: string;
 }) {
   return (
-    <div className="card hover-lift flex flex-col hover:border-ink-600">
-      <span className="tabular font-mono text-xs text-slate-600">{index}</span>
-      <h3 className="mt-2 font-semibold tracking-tight text-slate-100">{title}</h3>
+    <div className="card card-hover hover-lift flex h-full flex-col">
+      <span className="tabular font-mono text-xs text-iris-300/50">{index}</span>
+      <h3 className="mt-2.5 font-semibold tracking-tight text-white">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p>
       {href && cta && (
         <Link
           href={href}
-          className="mt-3 text-sm font-medium text-signal-buy transition-colors hover:text-emerald-300"
+          className="mt-4 text-sm font-medium text-iris-300 transition-colors hover:text-iris-100"
         >
           {cta} →
         </Link>

@@ -37,15 +37,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${mono.variable}`}>
       <body className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-20 border-b border-ink-800/80 bg-ink-950/70 backdrop-blur-md">
+        <Aurora />
+
+        <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-ink-975/60 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3.5">
             <Link
               href="/"
               className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-[15px] font-bold tracking-tight text-slate-100"
             >
-              <span className="relative flex h-2.5 w-2.5" aria-hidden>
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-buy opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-buy" />
+              {/* The mark: a filled orb with a slow halo. Violet, not green —
+                  green on this page always means BUY. */}
+              <span className="relative flex h-6 w-6 items-center justify-center" aria-hidden>
+                <span className="absolute inset-0 rounded-full bg-iris-500/30 blur-md" />
+                <span className="relative h-3.5 w-3.5 rounded-full bg-gradient-to-br from-iris-200 via-iris-400 to-iris-600 shadow-[0_0_12px_rgba(157,133,249,0.9)]" />
               </span>
               <span className="sm:hidden">ORB</span>
               <span className="hidden sm:inline">ORB Signal</span>
@@ -63,8 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">{children}</main>
 
-        <footer className="mt-16 border-t border-ink-800/80">
-          <div className="mx-auto max-w-5xl space-y-2 px-5 py-7 text-xs leading-relaxed text-slate-600">
+        <footer className="mt-20 border-t border-white/[0.06]">
+          <div className="mx-auto max-w-5xl space-y-2 px-5 py-8 text-xs leading-relaxed text-slate-500">
             <p>
               Research and decision support only. Not financial advice. Memecoin trading is
               extremely risky and you can lose everything you put in.
@@ -80,11 +84,59 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
+/**
+ * The moving light behind everything.
+ *
+ * Fixed to the viewport and pointer-events-none, so it costs nothing but paint:
+ * three blurred fields on different periods plus a masked grid and grain. It is
+ * the entire difference between "dark theme" and a room with a light in it.
+ */
+function Aurora() {
+  return (
+    <div className="aurora" aria-hidden>
+      <div
+        className="aurora__blob animate-drift"
+        style={{
+          top: '-18%',
+          left: '-10%',
+          width: '58vw',
+          height: '58vw',
+          background: 'radial-gradient(circle, rgba(135,103,240,0.55), transparent 68%)',
+        }}
+      />
+      <div
+        className="aurora__blob animate-drift-slow"
+        style={{
+          top: '-8%',
+          right: '-14%',
+          width: '52vw',
+          height: '52vw',
+          background: 'radial-gradient(circle, rgba(69,215,245,0.3), transparent 68%)',
+          animationDelay: '-8s',
+        }}
+      />
+      <div
+        className="aurora__blob animate-drift"
+        style={{
+          bottom: '-30%',
+          left: '25%',
+          width: '62vw',
+          height: '62vw',
+          background: 'radial-gradient(circle, rgba(90,60,189,0.42), transparent 70%)',
+          animationDelay: '-16s',
+        }}
+      />
+      <div className="aurora__grid" />
+      <div className="aurora__grain" />
+    </div>
+  );
+}
+
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="whitespace-nowrap rounded-lg px-2 py-1.5 text-[13px] text-slate-400 transition-colors hover:bg-ink-800 hover:text-slate-100 sm:px-3 sm:text-sm"
+      className="whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] text-slate-400 transition-all duration-300 hover:bg-white/[0.06] hover:text-white sm:px-3.5 sm:text-sm"
     >
       {children}
     </Link>

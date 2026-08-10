@@ -11,37 +11,49 @@ html {
 }
 
 body {
-  @apply bg-ink-950 font-sans text-slate-300 antialiased;
-  /* Layered, not one flat wash: a fine grid for the instrument-panel read, then
-     two offset colour glows so the page has a light direction. */
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
-    radial-gradient(55rem 38rem at 12% -8%, rgba(46, 232, 138, 0.07), transparent 62%),
-    radial-gradient(48rem 34rem at 88% 2%, rgba(56, 132, 255, 0.08), transparent 62%);
-  background-size:
-    56px 56px,
-    56px 56px,
-    100% 100%,
-    100% 100%;
+  @apply bg-ink-975 font-sans text-slate-300 antialiased;
+  /* Base wash. The moving colour lives in .aurora below; this is only the
+     floor it sits on, so scrolling never reveals a flat black edge. */
+  background-image: radial-gradient(120% 80% at 50% -20%, #150f2b 0%, #0a0713 45%, #07050d 100%);
   background-attachment: fixed;
 }
 
-/* Film grain. Kills the flat-vector look that makes dark UIs feel cheap, at the
-   cost of one inline SVG and no JavaScript. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.24;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+/* ---------------------------------------------------------------------------
+   Aurora
+   ---------------------------------------------------------------------------
+   Three soft colour fields drifting on different periods, fixed to the
+   viewport. Blurred beyond recognition on purpose: the eye should read a light
+   source in the room, never a shape. Each is its own element because one
+   element can only carry one transform, and the whole effect is the phase
+   difference between them.
+--------------------------------------------------------------------------- */
+.aurora {
+  @apply pointer-events-none fixed inset-0 -z-10 overflow-hidden;
 }
 
-body > * {
-  position: relative;
-  z-index: 1;
+.aurora__blob {
+  @apply absolute rounded-full;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+/* Very fine grid, barely there — it gives the blur something to sit against so
+   the page reads as a surface rather than as fog. */
+.aurora__grid {
+  @apply absolute inset-0;
+  background-image:
+    linear-gradient(rgba(180, 165, 253, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 165, 253, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 75%);
+}
+
+/* Film grain. Kills the banding that large soft gradients always produce on
+   8-bit displays, and stops the dark from looking like flat vector fill. */
+.aurora__grain {
+  @apply absolute inset-0;
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
 }
 
 /* Numeric columns must never jitter as digits change. */
@@ -51,72 +63,145 @@ body > * {
 
 @media (prefers-reduced-motion: reduce) {
   *,
-  *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  /* The drifting fields stop entirely rather than snapping to a keyframe. */
+  .aurora__blob {
+    animation: none !important;
+  }
 }
 
 @layer components {
+  /* -------------------------------------------------------------------------
+     Surfaces
+     -------------------------------------------------------------------------
+     One card recipe: translucent plum, a hairline that is brighter at the top
+     than the bottom (light falls from above), and blur so the aurora shows
+     through as colour rather than as shape.
+  ------------------------------------------------------------------------- */
   .card {
-    @apply relative rounded-2xl border border-ink-700/70 bg-ink-900/50 p-5 backdrop-blur-sm
-           transition-colors duration-300;
+    @apply relative rounded-3xl border border-white/[0.07] p-5 backdrop-blur-xl
+           transition-all duration-300;
+    background:
+      linear-gradient(180deg, rgba(36, 29, 67, 0.55) 0%, rgba(14, 11, 26, 0.65) 100%);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+      0 24px 60px -40px rgba(0, 0, 0, 0.9);
   }
 
   /* Hairline highlight along the top edge — the detail that reads as "crafted"
      rather than "a div with a border". */
   .card::before {
-    @apply pointer-events-none absolute inset-x-6 top-0 h-px;
+    @apply pointer-events-none absolute inset-x-8 top-0 h-px;
     content: '';
-    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.22), transparent);
+    background: linear-gradient(90deg, transparent, rgba(183, 165, 253, 0.4), transparent);
+  }
+
+  .card-hover {
+    @apply hover:border-iris-400/25 hover:shadow-iris;
   }
 
   .label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500;
+    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-iris-300/60;
   }
 
+  /* -------------------------------------------------------------------------
+     Controls
+  ------------------------------------------------------------------------- */
   .btn-primary {
-    @apply relative overflow-hidden rounded-xl bg-slate-100 px-6 py-3.5 text-sm font-bold
-           tracking-tight text-ink-950 transition-all duration-200
-           hover:bg-white hover:shadow-[0_0_36px_-10px_rgba(255,255,255,0.65)]
-           active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40
-           disabled:hover:shadow-none;
+    @apply relative overflow-hidden rounded-full px-7 py-3.5 text-sm font-semibold
+           tracking-tight text-white transition-all duration-300
+           hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]
+           disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0;
+    background: linear-gradient(135deg, #9d85f9 0%, #7a55e8 55%, #5f3ed0 100%);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+      0 14px 40px -14px rgba(135, 103, 240, 0.8);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+      0 20px 60px -14px rgba(135, 103, 240, 1);
+  }
+
+  /* Light sweeping across the fill on hover — the one flourish on the page's
+     single most important control. */
+  .btn-primary::after {
+    @apply pointer-events-none absolute inset-0 -translate-x-full;
+    content: '';
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.28) 50%,
+      transparent 80%
+    );
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-primary:hover::after {
+    @apply translate-x-full;
   }
 
   .btn-ghost {
-    @apply rounded-xl border border-ink-600 px-5 py-3 text-sm font-medium text-slate-300
-           transition-all duration-200 hover:border-ink-500 hover:bg-ink-800
-           hover:text-slate-100 active:scale-[0.98];
+    @apply rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium
+           text-slate-300 backdrop-blur-md transition-all duration-300
+           hover:-translate-y-0.5 hover:border-iris-400/40 hover:bg-iris-500/10
+           hover:text-white active:translate-y-0;
   }
 
   .input {
-    @apply w-full rounded-xl border border-ink-600 bg-ink-900/70 px-4 py-3.5 font-mono text-sm
-           text-slate-100 transition-all duration-200 placeholder:text-slate-600
-           focus:border-slate-500 focus:bg-ink-900 focus:outline-none focus:ring-4
-           focus:ring-slate-500/10;
+    @apply w-full rounded-2xl border border-white/10 bg-ink-900/60 px-5 py-4 font-mono text-sm
+           text-slate-100 backdrop-blur-md transition-all duration-300
+           placeholder:text-slate-600 focus:border-iris-400/60 focus:bg-ink-900/80
+           focus:outline-none focus:ring-4 focus:ring-iris-500/15;
   }
 
   .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-600 bg-ink-800/50
-           px-2.5 py-1 text-xs text-slate-400 transition-all duration-200
-           hover:border-ink-500 hover:bg-ink-800 hover:text-slate-200;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04]
+           px-3 py-1.5 text-xs text-slate-400 backdrop-blur-md transition-all duration-300
+           hover:border-iris-400/40 hover:bg-iris-500/10 hover:text-slate-100;
   }
 
   .skeleton {
-    @apply relative overflow-hidden rounded-lg bg-ink-800/80;
+    @apply relative overflow-hidden rounded-xl bg-white/[0.05];
   }
   .skeleton::after {
     @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r
-           from-transparent via-white/[0.07] to-transparent;
+           from-transparent via-white/[0.09] to-transparent;
     content: '';
   }
 }
 
 @layer utilities {
-  /* Lifts a card slightly on hover without a layout shift. */
+  /* Lifts a surface slightly on hover without a layout shift. */
   .hover-lift {
-    @apply transition-transform duration-300 will-change-transform hover:-translate-y-0.5;
+    @apply transition-all duration-300 will-change-transform hover:-translate-y-1;
+  }
+
+  /* Brand gradient on text. Animated so the headline has a slow life to it —
+     the background is 200% wide and slides, which is why `sweep` never seams. */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(100deg, #e8e2ff 0%, #b7a5fd 25%, #7ce7ff 50%, #b7a5fd 75%, #e8e2ff 100%);
+    background-size: 200% auto;
+  }
+
+  /* Gradient hairline around a surface, drawn with a mask so the fill stays
+     transparent. Reserved for the one or two elements that lead a page. */
+  .ring-gradient {
+    position: relative;
+  }
+  .ring-gradient::after {
+    @apply pointer-events-none absolute inset-0 rounded-[inherit] p-px;
+    content: '';
+    background: linear-gradient(140deg, rgba(183, 165, 253, 0.55), transparent 45%, rgba(124, 231, 255, 0.35));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 }

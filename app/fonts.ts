@@ -1,22 +1,23 @@
-import { JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { JetBrains_Mono, Outfit } from 'next/font/google';
 
 /**
- * Two faces, chosen against the reference set for this category (Axiom, Photon,
- * GMGN, BullX) rather than from a general web palette.
+ * Two faces, with opposite jobs.
  *
- * Space Grotesk carries the interface: a geometric grotesque with enough
- * character to not read as default-SaaS, and tight enough at display sizes to
- * make the verdict feel deliberate. Explicitly not Inter or Roboto, which is
- * what every dashboard already looks like.
+ * Outfit carries the interface. It is a geometric sans with rounded, open
+ * shapes — friendly rather than technical, which is the point: this product
+ * hands people a verdict about money, and a face that looks like a terminal
+ * makes that feel colder than it needs to. It stays tight and confident at
+ * display sizes, which is where the decision lives.
  *
  * JetBrains Mono carries every figure. Traders scan columns of numbers, and its
  * tabular figures mean digits never shift width as values update — a price
- * ticking from 9 to 10 should not nudge the column.
+ * ticking from 9 to 10 should not nudge the column. The contrast between the
+ * two is deliberate: prose is soft, evidence is machined.
  *
  * Self-hosted at build time by next/font, so no third-party request at runtime
  * and no layout shift while a webfont loads.
  */
-export const display = Space_Grotesk({
+export const display = Outfit({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-display',
