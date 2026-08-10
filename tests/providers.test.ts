@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import dexscreenerFixture from './fixtures/dexscreener.json';
 import goplusFixture from './fixtures/goplus.json';
-import { mapDexScreener, selectPrimaryPair } from '@/lib/providers/market/dexscreener';
+import { mapDexScreener, mapTokenProfile, selectPrimaryPair } from '@/lib/providers/market/dexscreener';
 import { mapGoPlus } from '@/lib/providers/security/goplus';
 import { mapGoPlusHolders } from '@/lib/providers/holders/composite';
 import { computeConcentration } from '@/lib/providers/holders/solana-rpc';
@@ -151,5 +151,57 @@ describe('helius large-wallet flow', () => {
     expect(
       mapHeliusTransactions([tx({})], { mint: MINT, priceUsd: null, nowMs: now, thresholdUsd: 1000 }),
     ).toBeNull();
+  });
+});
+
+describe('token profile', () => {
+  it('maps logo, websites and socials', () => {
+    const profile = mapTokenProfile({
+      imageUrl: 'https://cdn.example/logo.png',
+      websites: [{ label: 'Site', url: 'https://example.com' }],
+      socials: [{ type: 'Twitter', url: 'https://x.com/example' }],
+    })!;
+    expect(profile.imageUrl).toBe('https://cdn.example/logo.png');
+    expect(profile.websites).toEqual([{ label: 'Site', url: 'https://example.com' }]);
+    expect(profile.socials[0].type).toBe('twitter');
+  });
+
+  it('drops anything that is not https — these URLs are third-party and get rendered', () => {
+    const profile = mapTokenProfile({
+      imageUrl: 'javascript:alert(1)',
+      websites: [
+        { label: 'Bad', url: 'javascript:alert(1)' },
+        { label: 'Insecure', url: 'http://example.com' },
+        { label: 'Good', url: 'https://example.com' },
+      ],
+      socials: [{ type: 'x', url: 'data:text/html,<script>' }],
+    })!;
+    expect(profile.imageUrl).toBeNull();
+    expect(profile.websites).toEqual([{ label: 'Good', url: 'https://example.com' }]);
+    expect(profile.socials).toEqual([]);
+  });
+
+  it('caps the number of links so a hostile payload cannot flood the UI', () => {
+    const many = Array.from({ length: 40 }, (_, i) => ({
+      label: `L${i}`,
+      url: `https://example.com/${i}`,
+    }));
+    const profile = mapTokenProfile({ websites: many, socials: many.map((m) => ({ type: 't', url: m.url })) })!;
+    expect(profile.websites).toHaveLength(4);
+    expect(profile.socials).toHaveLength(4);
+  });
+
+  it('returns null when there is nothing to show, rather than an empty shell', () => {
+    expect(mapTokenProfile(undefined)).toBeNull();
+    expect(mapTokenProfile({})).toBeNull();
+    expect(mapTokenProfile({ websites: [], socials: [] })).toBeNull();
+  });
+
+  it('is wired into the market mapping', () => {
+    const fixture = JSON.parse(JSON.stringify(dexscreenerFixture));
+    fixture.pairs[1].info = { imageUrl: 'https://cdn.example/fix.png' };
+    expect(mapDexScreener(fixture, MINT)!.profile!.imageUrl).toBe('https://cdn.example/fix.png');
+    // Fixture without `info` must not invent a profile.
+    expect(mapDexScreener(dexscreenerFixture as any, MINT)!.profile).toBeNull();
   });
 });

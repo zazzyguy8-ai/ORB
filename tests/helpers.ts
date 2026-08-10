@@ -21,6 +21,7 @@ export function marketData(over: Partial<MarketData> = {}): MarketData {
   return {
     chain: 'solana',
     tokenAddress: 'Fixture1111111111111111111111111111111111111',
+    profile: null,
     pairAddress: 'PAIR',
     dex: 'raydium',
     name: 'Fixture Coin',

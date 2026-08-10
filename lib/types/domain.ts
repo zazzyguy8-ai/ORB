@@ -31,9 +31,25 @@ export interface TxnWindow {
   sells: number | null;
 }
 
+/**
+ * Presentational identity for a token — logo and official links.
+ *
+ * Purely cosmetic: nothing here feeds a metric, a score or a risk flag, and it
+ * must never influence a decision. A token with a slick logo is not safer than
+ * one without. It exists so the trader can confirm at a glance that they pasted
+ * the address they meant to.
+ */
+export interface TokenProfile {
+  imageUrl: string | null;
+  headerUrl: string | null;
+  websites: { label: string; url: string }[];
+  socials: { type: string; url: string }[];
+}
+
 export interface MarketData {
   chain: Chain;
   tokenAddress: string;
+  profile: TokenProfile | null;
   pairAddress: string | null;
   dex: string | null;
   name: string | null;

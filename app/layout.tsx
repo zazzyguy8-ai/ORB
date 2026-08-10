@@ -11,42 +11,53 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen">
-        <header className="border-b border-ink-800">
-          <nav className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-              <span className="h-2.5 w-2.5 rounded-full bg-sky-400" aria-hidden />
+      <body className="flex min-h-screen flex-col">
+        <header className="sticky top-0 z-20 border-b border-ink-800/80 bg-ink-950/70 backdrop-blur-md">
+          <nav className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight text-slate-100"
+            >
+              <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-buy opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-buy" />
+              </span>
               ORB Signal
             </Link>
-            <div className="flex items-center gap-4 text-sm text-slate-400">
-              <Link href="/app" className="transition hover:text-slate-100">
-                Analyze
-              </Link>
-              <Link href="/history" className="transition hover:text-slate-100">
-                History
-              </Link>
-              <Link href="/login" className="transition hover:text-slate-100">
-                Sign in
-              </Link>
+            <div className="flex items-center gap-1">
+              <NavLink href="/app">Analyze</NavLink>
+              <NavLink href="/history">History</NavLink>
+              <NavLink href="/login">Sign in</NavLink>
             </div>
           </nav>
         </header>
 
-        <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">{children}</main>
 
-        <footer className="mt-16 border-t border-ink-800">
-          <div className="mx-auto max-w-5xl space-y-2 px-5 py-6 text-xs text-slate-500">
+        <footer className="mt-16 border-t border-ink-800/80">
+          <div className="mx-auto max-w-5xl space-y-2 px-5 py-7 text-xs leading-relaxed text-slate-600">
             <p>
               Research and decision support only. Not financial advice. Memecoin trading is
               extremely risky and you can lose everything you put in.
             </p>
             <p>
-              ORB Signal is read-only: it never executes transactions, never asks for a seed phrase,
-              and never connects a wallet.
+              Read-only: ORB Signal never executes transactions, never asks for a seed phrase, and
+              never connects a wallet.
             </p>
           </div>
         </footer>
       </body>
     </html>
+  );
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-ink-800 hover:text-slate-100"
+    >
+      {children}
+    </Link>
   );
 }

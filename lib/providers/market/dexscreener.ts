@@ -1,7 +1,7 @@
 import { cached } from '@/lib/cache/memory';
 import { fetchJson, runProvider, toNumber } from '@/lib/providers/http';
 import type { MarketDataProvider, ProviderContext } from '@/lib/providers/types';
-import type { MarketData, ProviderResult } from '@/lib/types/domain';
+import type { MarketData, ProviderResult, TokenProfile } from '@/lib/types/domain';
 
 /**
  * DexScreener token endpoint. No credentials; documented at ~300 req/min for the
@@ -27,6 +27,12 @@ interface DsPair {
   volume?: Record<string, number>;
   priceChange?: Record<string, number>;
   txns?: Record<string, { buys?: number; sells?: number }>;
+  info?: {
+    imageUrl?: string;
+    header?: string;
+    websites?: { label?: string; url?: string }[];
+    socials?: { type?: string; url?: string }[];
+  };
 }
 
 interface DsResponse {
@@ -36,6 +42,41 @@ interface DsResponse {
 function window(pair: DsPair, key: string) {
   const t = pair.txns?.[key];
   return { buys: toNumber(t?.buys), sells: toNumber(t?.sells) };
+}
+
+/** Only https URLs are kept — a link we render must not be a javascript: payload. */
+function safeUrl(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  try {
+    return new URL(url).protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+export function mapTokenProfile(info: DsPair['info']): TokenProfile | null {
+  if (!info) return null;
+
+  const profile: TokenProfile = {
+    imageUrl: safeUrl(info.imageUrl),
+    headerUrl: safeUrl(info.header),
+    websites: (info.websites ?? [])
+      .map((w) => ({ label: w.label?.trim() || 'Website', url: safeUrl(w.url) }))
+      .filter((w): w is { label: string; url: string } => w.url !== null)
+      .slice(0, 4),
+    socials: (info.socials ?? [])
+      .map((s) => ({ type: s.type?.trim().toLowerCase() || 'link', url: safeUrl(s.url) }))
+      .filter((s): s is { type: string; url: string } => s.url !== null)
+      .slice(0, 4),
+  };
+
+  const empty =
+    !profile.imageUrl &&
+    !profile.headerUrl &&
+    profile.websites.length === 0 &&
+    profile.socials.length === 0;
+
+  return empty ? null : profile;
 }
 
 /**
@@ -68,6 +109,7 @@ export function mapDexScreener(res: DsResponse, tokenAddress: string): MarketDat
   return {
     chain: 'solana',
     tokenAddress,
+    profile: mapTokenProfile(primary.info),
     pairAddress: primary.pairAddress ?? null,
     dex: primary.dexId ?? null,
     name: primary.baseToken?.name ?? null,
