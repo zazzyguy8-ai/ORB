@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <div className="flex items-center gap-1">
               <NavLink href="/app">Analyze</NavLink>
+              <NavLink href="/track-record">Track record</NavLink>
               <NavLink href="/history">History</NavLink>
               <NavLink href="/login">Sign in</NavLink>
             </div>
@@ -76,7 +77,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-colors hover:bg-ink-800 hover:text-slate-100"
+      className="whitespace-nowrap rounded-lg px-2 py-1.5 text-[13px] text-slate-400 transition-colors hover:bg-ink-800 hover:text-slate-100 sm:px-3 sm:text-sm"
     >
       {children}
     </Link>
