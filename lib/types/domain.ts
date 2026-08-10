@@ -336,6 +336,14 @@ export interface AnalysisResult {
   riskFlags: RiskFlag[];
   metrics: DerivedMetrics;
   market: MarketData | null;
+  /**
+   * Raw provider payloads, so the UI can render the detail behind a score
+   * without re-deriving it. Null means that category was not collected — the
+   * interface must show it as unchecked rather than as clean or as zero.
+   */
+  security: SecurityData | null;
+  holders: HolderData | null;
+  wallets: WalletData | null;
   availability: DataAvailability;
   unavailable: string[];
   timings: AnalysisTimings;

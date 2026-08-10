@@ -2,11 +2,24 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DecisionCard } from '@/components/DecisionCard';
-import { FullAnalysis } from '@/components/FullAnalysis';
+import { DeepDive } from '@/components/analysis/DeepDive';
+import { ResultActions } from '@/components/analysis/ResultActions';
+import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
 import { validateSolanaAddress } from '@/lib/chains/solana';
 import { getAccessToken } from '@/lib/supabase/browser';
 import type { AnalysisResult } from '@/lib/types/domain';
+
+/**
+ * Well-known, long-lived mints so a first-time visitor can see a real result
+ * without owning a contract address. They are examples, not recommendations,
+ * and the analysis they produce is the same live analysis as any other input.
+ */
+const EXAMPLES = [
+  { label: 'BONK', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
+  { label: 'WIF', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
+  { label: 'POPCAT', address: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },
+];
 
 const STAGES = [
   'Collecting market, security and holder data…',
@@ -24,11 +37,11 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  async function analyze(event: React.FormEvent) {
+  async function analyze(event: React.FormEvent, override?: string) {
     event.preventDefault();
 
     // Validate before spending a request — same validator the API uses.
-    const validation = validateSolanaAddress(address);
+    const validation = validateSolanaAddress(override ?? address);
     if (!validation.valid) {
       setError(validation.error ?? 'Invalid address.');
       return;
@@ -87,6 +100,25 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         </button>
       </form>
 
+      {!result && !loading && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-600">Try one:</span>
+          {EXAMPLES.map((example) => (
+            <button
+              key={example.address}
+              type="button"
+              className="pill"
+              onClick={(e) => {
+                setAddress(example.address);
+                void analyze(e, example.address);
+              }}
+            >
+              {example.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading && <LoadingState stage={stage} />}
 
       {error && (
@@ -101,8 +133,10 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
       {result && (
         <div className="space-y-4">
           <DecisionCard result={result} />
+          <ResultActions result={result} />
           <RiskFlags flags={result.riskFlags} unavailable={result.unavailable} />
-          <FullAnalysis result={result} />
+          <SignalGrid score={result.score} />
+          <DeepDive result={result} />
           {!result.persisted && (
             <p className="text-xs text-slate-600">
               This analysis was not saved — persistence is not configured on this deployment.

@@ -149,6 +149,9 @@ export async function runAnalysis(
     riskFlags: flags,
     metrics,
     market,
+    security: data.security.status === 'ok' ? data.security.data : null,
+    holders: data.holders.status === 'ok' ? data.holders.data : null,
+    wallets: data.wallets.status === 'ok' ? data.wallets.data : null,
     availability: {
       market: data.market.status,
       security: data.security.status,
