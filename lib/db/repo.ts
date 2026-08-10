@@ -196,17 +196,19 @@ async function writeWalletEvents(analysisId: string, tokenId: string, data: Coll
 }
 
 /**
- * The most recent stored analysis for a token, excluding one id.
+ * The token's recent analyses, newest first.
  *
- * Read before the new row is written, so "previous" means the last time we
- * looked — not the analysis currently being produced.
+ * One query serves two features: the first row is "last time we looked" for the
+ * delta, and the whole list is the score history. Read before the new row is
+ * written, so the current analysis is never its own predecessor.
  */
-export async function getPreviousAnalysis(
+export async function getAnalysisHistoryForToken(
   chain: string,
   address: string,
-): Promise<PreviousAnalysis | null> {
+  limit = 24,
+): Promise<PreviousAnalysis[]> {
   const db = getDb();
-  if (!db) return null;
+  if (!db) return [];
 
   try {
     const { data, error } = await db
@@ -215,23 +217,31 @@ export async function getPreviousAnalysis(
       .eq('chain', chain)
       .eq('address', address)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(Math.min(limit, 100));
 
-    if (error || !data) return null;
+    if (error || !data) return [];
 
-    return {
-      id: data.id as string,
-      decision: data.decision as PreviousAnalysis['decision'],
-      score: Number(data.score),
-      confidence: Number(data.confidence),
-      createdAt: data.created_at as string,
-      priceUsd: data.price_usd === null ? null : Number(data.price_usd),
-      liquidityUsd: data.liquidity_usd === null ? null : Number(data.liquidity_usd),
-    };
+    return data.map((row: any) => ({
+      id: row.id as string,
+      decision: row.decision as PreviousAnalysis['decision'],
+      score: Number(row.score),
+      confidence: Number(row.confidence),
+      createdAt: row.created_at as string,
+      priceUsd: row.price_usd === null ? null : Number(row.price_usd),
+      liquidityUsd: row.liquidity_usd === null ? null : Number(row.liquidity_usd),
+    }));
   } catch {
-    return null;
+    return [];
   }
+}
+
+/** The single most recent stored analysis, or null when this is the first. */
+export async function getPreviousAnalysis(
+  chain: string,
+  address: string,
+): Promise<PreviousAnalysis | null> {
+  const rows = await getAnalysisHistoryForToken(chain, address, 1);
+  return rows[0] ?? null;
 }
 
 export interface SharedOutcome {

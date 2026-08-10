@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { siteUrl } from '@/lib/config/site';
 import Link from 'next/link';
 import { display, mono } from '@/app/fonts';
 import './globals.css';
@@ -7,6 +8,9 @@ const DESCRIPTION =
   'Paste a Solana memecoin contract and get BUY / WATCH / AVOID with the evidence behind it, in seconds.';
 
 export const metadata: Metadata = {
+  // Absolute URLs for the social card: several crawlers drop a relative one,
+  // which would quietly undo the per-analysis OG images.
+  metadataBase: new URL(siteUrl()),
   title: {
     default: 'ORB Signal — Paste a token. Get the signal.',
     template: '%s — ORB Signal',

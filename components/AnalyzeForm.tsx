@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DecisionCard } from '@/components/DecisionCard';
 import { DeepDive } from '@/components/analysis/DeepDive';
 import { DeltaBanner } from '@/components/analysis/DeltaBanner';
+import { ScoreHistory } from '@/components/analysis/ScoreHistory';
 import { ResultActions } from '@/components/analysis/ResultActions';
 import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
@@ -198,6 +199,16 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
           <DecisionCard result={result} />
           <ResultActions result={result} />
           {result.delta && <DeltaBanner delta={result.delta} />}
+          {result.history && result.history.length > 0 && (
+            <ScoreHistory
+              history={result.history}
+              current={{
+                at: result.createdAt,
+                score: result.score.total,
+                decision: result.decision,
+              }}
+            />
+          )}
           <RiskFlags flags={result.riskFlags} unavailable={result.unavailable} />
           <SignalGrid score={result.score} />
           <DeepDive result={result} />

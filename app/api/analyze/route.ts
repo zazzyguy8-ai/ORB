@@ -3,7 +3,7 @@ import { validateSolanaAddress, QUOTE_MINTS } from '@/lib/chains/solana';
 import { env } from '@/lib/config/env';
 import { getUserIdFromToken } from '@/lib/db/client';
 import { buildDelta } from '@/lib/decision/delta';
-import { getPreviousAnalysis, persistAnalysis } from '@/lib/db/repo';
+import { getAnalysisHistoryForToken, persistAnalysis } from '@/lib/db/repo';
 import { kickOutcomeTracker } from '@/lib/outcomes/kick';
 import { runAnalysis } from '@/lib/pipeline/analyze';
 import {
@@ -73,13 +73,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Read the previous analysis alongside the new one — it must be fetched
-    // before persistAnalysis writes the current row, or "previous" would be
-    // this very analysis.
-    const [{ result, collected }, previous] = await Promise.all([
+    // Read this token's stored history alongside the new analysis. It must be
+    // fetched before persistAnalysis writes the current row, or "previous"
+    // would be this very analysis.
+    const [{ result, collected }, history] = await Promise.all([
       runAnalysis(validation.address),
-      getPreviousAnalysis('solana', validation.address),
+      getAnalysisHistoryForToken('solana', validation.address),
     ]);
+    const previous = history[0] ?? null;
 
     if (result.availability.market !== 'ok') {
       // Without market data there is no token to talk about — do not publish a
@@ -102,6 +103,11 @@ export async function POST(request: Request) {
         { status: unreachable ? 503 : 404 },
       );
     }
+
+    // Oldest first, so the sparkline reads left to right in time.
+    result.history = history
+      .map((row) => ({ at: row.createdAt, score: row.score, decision: row.decision }))
+      .reverse();
 
     if (previous) {
       result.delta = buildDelta(previous, {

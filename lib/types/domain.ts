@@ -357,6 +357,11 @@ export interface AnalysisResult {
    */
   delta: AnalysisDelta | null;
   /**
+   * Every stored score for this token, oldest first, excluding this one. Our
+   * own record — no data feed can reproduce what this model said last week.
+   */
+  history?: { at: string; score: number; decision: Decision }[];
+  /**
    * True when this analysis is stored without an owner, so its permalink can be
    * read by anyone. A signed-in user's analyses are theirs alone — sharing one
    * would publish their research to whoever received the link.
