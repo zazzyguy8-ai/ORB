@@ -5,6 +5,7 @@ import { DecisionCard } from '@/components/DecisionCard';
 import { DeepDive } from '@/components/analysis/DeepDive';
 import { DeltaBanner } from '@/components/analysis/DeltaBanner';
 import { ScoreHistory } from '@/components/analysis/ScoreHistory';
+import { WhatWeCheck } from '@/components/analysis/WhatWeCheck';
 import { ResultActions } from '@/components/analysis/ResultActions';
 import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
@@ -182,6 +183,10 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
           )}
         </div>
       )}
+
+      {/* Before the first analysis this page is an input box on an empty
+          screen; the space is better spent saying what happens next. */}
+      {!loading && !result && !error && <WhatWeCheck />}
 
       {loading && <LoadingState stage={stage} />}
 

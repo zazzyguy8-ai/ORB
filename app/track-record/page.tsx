@@ -290,7 +290,7 @@ function NotConfigured() {
 
 function Methodology() {
   return (
-    <section className="card space-y-3 text-xs leading-relaxed text-slate-500">
+    <section className="card max-w-3xl space-y-3 text-xs leading-relaxed text-slate-500">
       <p className="label text-slate-400">How to read this</p>
       <ul className="space-y-2">
         <li>

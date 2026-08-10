@@ -38,18 +38,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${mono.variable}`}>
       <body className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-20 border-b border-ink-800/80 bg-ink-950/70 backdrop-blur-md">
-          <nav className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5">
+          <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3.5">
             <Link
               href="/"
-              className="flex items-center gap-2.5 text-[15px] font-bold tracking-tight text-slate-100"
+              className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-[15px] font-bold tracking-tight text-slate-100"
             >
               <span className="relative flex h-2.5 w-2.5" aria-hidden>
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal-buy opacity-60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal-buy" />
               </span>
-              ORB Signal
+              <span className="sm:hidden">ORB</span>
+              <span className="hidden sm:inline">ORB Signal</span>
             </Link>
-            <div className="flex items-center gap-1">
+            {/* Scrolls rather than wraps on a narrow phone: a nav that reflows
+                onto two lines pushes the whole page down on every screen. */}
+            <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto sm:gap-1">
               <NavLink href="/app">Analyze</NavLink>
               <NavLink href="/track-record">Track record</NavLink>
               <NavLink href="/history">History</NavLink>
