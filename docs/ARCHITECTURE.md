@@ -96,6 +96,8 @@ Expected p50 with warm providers: **~4–5 s** — roughly 1 s of parallel data 
 
 Indexes: `tokens(chain, address)` unique; `analyses(token_id, created_at desc)`, `analyses(user_id, created_at desc)`, `analyses(created_at desc)`, `analyses(decision, score)`; `analysis_metrics(analysis_id)` + `(metric_key)`; `risk_flags(analysis_id)` + `(code)`; `wallet_events(analysis_id)`, `(token_id, occurred_at desc)`; `price_snapshots(token_id, captured_at desc)`, `(analysis_id, checkpoint)` unique; `analysis_outcomes(due_at)` partial index where `status='pending'` (the cron hot path), `(analysis_id, checkpoint)` unique.
 
+`supabase/migrations/0002_outcome_staleness.sql` adds the `stale` outcome status and `analysis_outcomes.late_by_seconds`. See §12.
+
 Metrics are stored **both** as a JSONB blob on `analyses` (fast read-back for history) **and** as a long, narrow `analysis_metrics` table (one row per metric) so signal-level performance can be queried later without schema churn (spec §14).
 
 ## 6. API routes
@@ -107,7 +109,9 @@ Metrics are stored **both** as a JSONB blob on `analyses` (fast read-back for hi
 | `/api/analysis/[id]` | GET | Single stored analysis + outcomes. |
 | `/api/cron/snapshots` | POST/GET | Records due price checkpoints. Protected by `CRON_SECRET`. |
 | `/api/health` | GET | Provider availability + config diagnostics. No secrets echoed. |
-| `/api/diagnostics` | GET | **Live** provider probe: host reachability + per-field parse coverage + a plain-language verdict. Protected by `CRON_SECRET`. Run this first after any deploy. |
+| `/api/diagnostics` | GET | **Live** provider probe: host reachability + per-field parse coverage + schema, migration and outcome-tracking health, with a plain-language verdict. Protected by `CRON_SECRET`. Run this first after any deploy. |
+
+Pages: `/` (landing), `/app` (the product), `/history`, `/track-record` (public scoreboard), `/a/[id]` (permalink for one stored call, with its own OG image), `/login`.
 
 ## 7. Scoring architecture
 
@@ -145,3 +149,50 @@ Everything except live data and live phrasing: address validation, the entire pr
 - Supabase migration application and RLS behaviour.
 - Smart-money classification — blocked on a provider that can supply verified historical wallet PnL.
 - Spec §26 historical validation — needs live data collection over time; the schema and the `analysis_outcomes` pipeline exist to produce it.
+
+## 12. Added after the first deploy
+
+Everything above describes the MVP as specified. These were added once it was
+running, and each is here because it changes how the product can be trusted
+rather than what it can do.
+
+**Outcome staleness.** A checkpoint priced long after it came due is a
+different measurement wearing the wrong label. `lib/outcomes/tracker.ts` drops
+those as `stale` (a status distinct from `failed`, which means "no price was
+available") using a per-horizon tolerance, and stale rows never reach the
+scoreboard. Without this, a worker that falls behind quietly converts an outage
+into a performance claim.
+
+**Opportunistic tracking.** The host has no minute-level scheduler on its free
+tier, so every analysis request also nudges the tracker (`lib/outcomes/kick.ts`,
+throttled to once a minute per instance, never awaited). Traffic becomes the
+clock. It does not replace a scheduler — quiet periods still produce stale
+checkpoints — and `/api/diagnostics` reports the difference between "due and
+unpriced" (nothing is running) and "stale" (it runs too late).
+
+**The public scoreboard** (`/track-record`, `lib/outcomes/scoreboard.ts`). Three
+rules are enforced in code: a cell is published only at 20+ outcomes, WATCH
+never receives a hit rate because it claims no direction, and the median leads
+rather than the average. Individual resolved calls are listed without the
+sample-size gate — one call is a receipt, not a statistic.
+
+**Permalinks** (`/a/[id]`). Serves the stored row rather than re-running the
+analysis, so a shared link shows what was actually said. Only ownerless rows are
+readable there; the lookup distinguishes `missing` from `error` because the page
+caches its render, and caching a database hiccup as a 404 would break valid
+links for everyone.
+
+**Score levers** (`lib/scoring/levers.ts`). Re-runs the weighting with each
+signal at its best and reports what the difference would be, so the score can be
+acted on rather than only read. Recomputed rather than derived arithmetically —
+renormalisation makes a signal's effective weight depend on which siblings had
+data. Signals with no data are never listed: they are renormalised out, not
+dragging the score down.
+
+**Offline review tooling.** `scripts/preview-payload.ts` runs the real pipeline
+over the fixtures and writes an `/api/analyze` payload, so the result screen can
+be rendered in a browser with the response stubbed. `scripts/fake-supabase.mjs`
+stands in for PostgREST so the server-rendered pages can be reviewed too. Both
+exist because this environment cannot reach the hosts those screens depend on,
+and both have already caught defects that the test suite could not see —
+stretched chart markers, and the cached-404 above.

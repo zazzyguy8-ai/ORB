@@ -223,14 +223,22 @@ export async function fetchRecentResolvedCalls(limit = 12): Promise<ResolvedCall
 
 const MAX_ROWS = 5000;
 
+export type TrackRecordLookup =
+  | { status: 'ok'; record: TrackRecord }
+  | { status: 'not-configured' }
+  | { status: 'error' };
+
 /**
- * Reads recorded outcomes and summarises them. Returns null when there is no
- * database — the caller renders that as "not configured", which is a different
- * statement from "no results yet" and must not be conflated with it.
+ * Reads recorded outcomes and summarises them.
+ *
+ * Three outcomes, not two. "No database configured" and "the query failed" look
+ * identical from here but mean opposite things to the reader — and this page is
+ * prerendered, so a failure at build time would otherwise be served for minutes
+ * as a confident claim that outcome tracking is switched off.
  */
-export async function fetchTrackRecord(): Promise<TrackRecord | null> {
+export async function fetchTrackRecord(): Promise<TrackRecordLookup> {
   const db = getDb();
-  if (!db) return null;
+  if (!db) return { status: 'not-configured' };
 
   try {
     const { data, error } = await db
@@ -241,7 +249,7 @@ export async function fetchTrackRecord(): Promise<TrackRecord | null> {
       .order('recorded_at', { ascending: false })
       .limit(MAX_ROWS);
 
-    if (error || !data) return null;
+    if (error || !data) return { status: 'error' };
 
     const rows: OutcomeRow[] = [];
     for (const row of data as any[]) {
@@ -254,8 +262,8 @@ export async function fetchTrackRecord(): Promise<TrackRecord | null> {
       });
     }
 
-    return summarizeOutcomes(rows);
+    return { status: 'ok', record: summarizeOutcomes(rows) };
   } catch {
-    return null;
+    return { status: 'error' };
   }
 }

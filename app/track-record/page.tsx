@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { unstable_noStore as noStore } from 'next/cache';
 import Link from 'next/link';
 import {
   fetchRecentResolvedCalls,
@@ -41,7 +42,12 @@ const DECISION_STYLE = {
  * here as plainly as a good one.
  */
 export default async function TrackRecordPage() {
-  const [record, calls] = await Promise.all([fetchTrackRecord(), fetchRecentResolvedCalls()]);
+  const [lookup, calls] = await Promise.all([fetchTrackRecord(), fetchRecentResolvedCalls()]);
+
+  // A failed read must not be cached as "tracking is switched off": this page is
+  // prerendered, so that claim would be served for minutes after the database
+  // recovered. Opting this render out of the cache keeps the mistake momentary.
+  if (lookup.status === 'error') noStore();
 
   return (
     <div className="space-y-6 py-2">
@@ -54,12 +60,14 @@ export default async function TrackRecordPage() {
         </p>
       </header>
 
-      {record === null ? (
+      {lookup.status === 'not-configured' ? (
         <NotConfigured />
-      ) : record.totalOutcomes === 0 ? (
+      ) : lookup.status === 'error' ? (
+        <Unavailable />
+      ) : lookup.record.totalOutcomes === 0 ? (
         <Empty />
       ) : (
-        <Scoreboard record={record} />
+        <Scoreboard record={lookup.record} />
       )}
 
       {calls.length > 0 && <RecentCalls calls={calls} />}
@@ -275,6 +283,15 @@ function Empty() {
       <Link href="/app" className="btn-primary mt-5 inline-block">
         Run an analysis
       </Link>
+    </div>
+  );
+}
+
+function Unavailable() {
+  return (
+    <div className="card text-sm leading-relaxed text-slate-400">
+      The scoreboard could not be loaded right now — our storage did not answer. The recorded
+      outcomes are unaffected; reloading in a moment usually resolves it.
     </div>
   );
 }
