@@ -4,6 +4,7 @@ import { env } from '@/lib/config/env';
 import { getUserIdFromToken } from '@/lib/db/client';
 import { buildDelta } from '@/lib/decision/delta';
 import { getPreviousAnalysis, persistAnalysis } from '@/lib/db/repo';
+import { kickOutcomeTracker } from '@/lib/outcomes/kick';
 import { runAnalysis } from '@/lib/pipeline/analyze';
 import {
   checkIpLimit,
@@ -112,6 +113,11 @@ export async function POST(request: Request) {
     }
 
     const analysisId = await persistAnalysis(result, { userId, data: collected });
+
+    // Traffic doubles as the scheduler: this deployment has no minute-level
+    // cron, so each analysis nudges the outcome tracker. Throttled, never
+    // awaited — the user is not paying for it in latency.
+    kickOutcomeTracker();
 
     return NextResponse.json({
       ...result,

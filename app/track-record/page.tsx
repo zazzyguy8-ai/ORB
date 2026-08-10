@@ -216,6 +216,11 @@ function Methodology() {
           would invent a prediction the model never made.
         </li>
         <li>
+          <span className="text-slate-300">Late checkpoints are dropped, not backdated.</span> A
+          price fetched hours after a “+5 min” checkpoint was due is a different measurement
+          wearing the wrong label, so it is discarded instead of counted.
+        </li>
+        <li>
           <span className="text-slate-300">Prices are mid-market, not fills.</span> A real trade
           pays slippage, priority fees and the spread. Treat every number here as better than what
           you would have got.

@@ -16,11 +16,47 @@ import { getDb } from '@/lib/db/client';
 const MAX_ATTEMPTS = 3;
 const BATCH_SIZE = 40;
 
+/**
+ * How late a checkpoint may be priced and still count.
+ *
+ * A "+5 min" outcome measured four hours after the call is not a +5 min
+ * outcome — it is a 4 h outcome wearing the wrong label, and averaging it into
+ * the scoreboard would quietly turn a worker outage into a performance claim.
+ * The worker falls behind for ordinary reasons (a sleeping instance, a missed
+ * scheduler beat, a provider outage), so this is the normal path, not an edge
+ * case.
+ *
+ * The allowance scales with the horizon: two minutes matters at +5m and is
+ * noise at +24h.
+ */
+const TOLERANCE_SECONDS: Record<string, number> = {
+  m5: 120,
+  m15: 300,
+  h1: 900,
+  h6: 3_600,
+  h24: 7_200,
+};
+
+/** Unknown checkpoints get the tightest allowance rather than a free pass. */
+export function toleranceSeconds(checkpoint: string): number {
+  return TOLERANCE_SECONDS[checkpoint] ?? 120;
+}
+
+/**
+ * Is this row still worth pricing? Pure so the rule can be tested without a
+ * database or a clock.
+ */
+export function isStale(checkpoint: string, dueAtMs: number, nowMs: number): boolean {
+  return (nowMs - dueAtMs) / 1000 > toleranceSeconds(checkpoint);
+}
+
 export interface TrackerReport {
   due: number;
   recorded: number;
   failed: number;
   skipped: number;
+  /** Dropped because they came due too long ago to still mean what they say. */
+  stale: number;
 }
 
 interface DueRow {
@@ -31,16 +67,17 @@ interface DueRow {
   baseline_price_usd: number | null;
   attempts: number;
   address: string;
+  due_at_ms: number;
 }
 
 export async function recordDueOutcomes(nowMs: number = Date.now()): Promise<TrackerReport> {
   const db = getDb();
-  const report: TrackerReport = { due: 0, recorded: 0, failed: 0, skipped: 0 };
+  const report: TrackerReport = { due: 0, recorded: 0, failed: 0, skipped: 0, stale: 0 };
   if (!db) return report;
 
   const { data, error } = await db
     .from('analysis_outcomes')
-    .select('id,analysis_id,token_id,checkpoint,baseline_price_usd,attempts,analyses(address)')
+    .select('id,analysis_id,token_id,checkpoint,due_at,baseline_price_usd,attempts,analyses(address)')
     .eq('status', 'pending')
     .lte('due_at', new Date(nowMs).toISOString())
     .order('due_at', { ascending: true })
@@ -56,15 +93,37 @@ export async function recordDueOutcomes(nowMs: number = Date.now()): Promise<Tra
     baseline_price_usd: row.baseline_price_usd === null ? null : Number(row.baseline_price_usd),
     attempts: row.attempts ?? 0,
     address: row.analyses?.address ?? '',
+    due_at_ms: Date.parse(row.due_at),
   }));
 
   report.due = rows.length;
   if (rows.length === 0) return report;
 
+  // Retire the hopeless ones before spending a single provider call on them.
+  const stale = rows.filter((row) => isStale(row.checkpoint, row.due_at_ms, nowMs));
+  const fresh = rows.filter((row) => !isStale(row.checkpoint, row.due_at_ms, nowMs));
+
+  if (stale.length > 0) {
+    report.stale = stale.length;
+    await Promise.allSettled(
+      stale.map((row) =>
+        db
+          .from('analysis_outcomes')
+          .update({
+            status: 'stale',
+            late_by_seconds: Math.round((nowMs - row.due_at_ms) / 1000),
+          })
+          .eq('id', row.id),
+      ),
+    );
+  }
+
+  if (fresh.length === 0) return report;
+
   // One price lookup per distinct token, not per checkpoint row — several
   // analyses of the same token frequently come due together.
   const provider = new DexScreenerProvider();
-  const addresses = [...new Set(rows.map((r) => r.address).filter(Boolean))];
+  const addresses = [...new Set(fresh.map((r) => r.address).filter(Boolean))];
   const prices = new Map<string, { price: number | null; liquidity: number | null; mcap: number | null; volH1: number | null }>();
 
   await Promise.all(
@@ -86,7 +145,7 @@ export async function recordDueOutcomes(nowMs: number = Date.now()): Promise<Tra
   );
 
   await Promise.all(
-    rows.map(async (row) => {
+    fresh.map(async (row) => {
       const quote = prices.get(row.address);
       const price = quote?.price ?? null;
 
@@ -113,6 +172,7 @@ export async function recordDueOutcomes(nowMs: number = Date.now()): Promise<Tra
             return_pct: returnPct,
             attempts: row.attempts + 1,
             recorded_at: new Date(nowMs).toISOString(),
+            late_by_seconds: Math.round((nowMs - row.due_at_ms) / 1000),
           })
           .eq('id', row.id),
         db.from('price_snapshots').upsert(
