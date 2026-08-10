@@ -6,6 +6,11 @@ import { DeepDive } from '@/components/analysis/DeepDive';
 import { DeltaBanner } from '@/components/analysis/DeltaBanner';
 import { ScoreHistory } from '@/components/analysis/ScoreHistory';
 import { WhatWeCheck } from '@/components/analysis/WhatWeCheck';
+import {
+  ErrorPanel,
+  errorKindFromStatus,
+  type AnalysisError,
+} from '@/components/analysis/ErrorPanel';
 import { ResultActions } from '@/components/analysis/ResultActions';
 import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
@@ -35,7 +40,7 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
   const [address, setAddress] = useState(initialAddress);
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AnalysisError | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +72,11 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
     // Validate before spending a request — same validator the API uses.
     const validation = validateSolanaAddress(override ?? address);
     if (!validation.valid) {
-      setError(validation.error ?? 'Invalid address.');
+      setError({
+        kind: 'invalid',
+        message: validation.error ?? 'Invalid address.',
+        address: null,
+      });
       return;
     }
 
@@ -92,7 +101,11 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
 
       const payload = await response.json();
       if (!response.ok) {
-        setError(payload.error ?? 'Analysis failed.');
+        setError({
+          kind: errorKindFromStatus(response.status),
+          message: payload.error ?? 'Analysis failed.',
+          address: validation.address,
+        });
         return;
       }
 
@@ -105,7 +118,11 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         at: Date.now(),
       });
     } catch {
-      setError('Could not reach the analysis service.');
+      setError({
+        kind: 'provider',
+        message: 'Could not reach the analysis service.',
+        address: validation.address,
+      });
     } finally {
       timers.current.forEach(clearTimeout);
       setLoading(false);
@@ -184,20 +201,21 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         </div>
       )}
 
+      {error && (
+        <ErrorPanel
+          error={error}
+          onRetry={() => {
+            const event = { preventDefault() {} } as React.FormEvent;
+            void analyze(event, error.address ?? address);
+          }}
+        />
+      )}
+
       {/* Before the first analysis this page is an input box on an empty
           screen; the space is better spent saying what happens next. */}
-      {!loading && !result && !error && <WhatWeCheck />}
+      {!loading && !result && <WhatWeCheck />}
 
       {loading && <LoadingState stage={stage} />}
-
-      {error && (
-        <div
-          role="alert"
-          className="animate-fade-up rounded-xl border border-signal-avoid/40 bg-signal-avoid/[0.08] px-4 py-3.5 text-sm text-slate-200"
-        >
-          {error}
-        </div>
-      )}
 
       {result && (
         <div className="space-y-4">
