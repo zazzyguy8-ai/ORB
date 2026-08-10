@@ -25,6 +25,30 @@ export const EXPECTED_TABLES = [
   'decision_performance',
 ] as const;
 
+/**
+ * Columns added by later migrations, each standing in for its whole migration.
+ *
+ * A table probe cannot see these: `analysis_outcomes` exists perfectly well
+ * without them, so a half-migrated database looks healthy right up until the
+ * writes that need the column start failing silently in best-effort code.
+ */
+export const EXPECTED_COLUMNS = [
+  {
+    migration: '0002_outcome_staleness',
+    table: 'analysis_outcomes',
+    column: 'late_by_seconds',
+    consequence:
+      'late checkpoints are recorded under their original label instead of being marked stale',
+  },
+] as const;
+
+export interface MigrationProbe {
+  migration: string;
+  applied: boolean;
+  error: string | null;
+  consequence: string;
+}
+
 export interface TableProbe {
   table: string;
   ok: boolean;
@@ -38,6 +62,7 @@ export interface DatabaseProbe {
   host: string | null;
   latencyMs: number;
   tables: TableProbe[];
+  migrations: MigrationProbe[];
 }
 
 /** Missing-relation errors, so a missing table reads differently to a broken one. */
@@ -71,7 +96,7 @@ export async function probeDatabase(): Promise<DatabaseProbe> {
   const started = Date.now();
 
   if (!isSupabaseConfigured()) {
-    return { configured: false, host: null, latencyMs: 0, tables: [] };
+  return { configured: false, host: null, latencyMs: 0, tables: [], migrations: [] };
   }
 
   const db = getDb()!;
@@ -103,7 +128,44 @@ export async function probeDatabase(): Promise<DatabaseProbe> {
     }),
   );
 
-  return { configured: true, host, latencyMs: Date.now() - started, tables };
+  const missingTables = new Set(tables.filter((t) => !t.ok).map((t) => t.table));
+
+  const migrations = await Promise.all(
+    EXPECTED_COLUMNS.map(async (expected): Promise<MigrationProbe> => {
+      // A missing table already produces its own verdict line; probing a column
+      // on it would only repeat the same problem in different words.
+      if (missingTables.has(expected.table)) {
+        return {
+          migration: expected.migration,
+          applied: false,
+          error: `${expected.table} is not readable`,
+          consequence: expected.consequence,
+        };
+      }
+
+      try {
+        const { error } = await db
+          .from(expected.table)
+          .select(expected.column, { count: 'exact', head: true });
+
+        return {
+          migration: expected.migration,
+          applied: !error,
+          error: error ? describeDbError(error) : null,
+          consequence: expected.consequence,
+        };
+      } catch (err) {
+        return {
+          migration: expected.migration,
+          applied: false,
+          error: err instanceof Error ? err.message : 'Unknown error.',
+          consequence: expected.consequence,
+        };
+      }
+    }),
+  );
+
+  return { configured: true, host, latencyMs: Date.now() - started, tables, migrations };
 }
 
 export function buildDatabaseVerdict(probe: DatabaseProbe): string[] {
@@ -114,7 +176,7 @@ export function buildDatabaseVerdict(probe: DatabaseProbe): string[] {
   }
 
   const failed = probe.tables.filter((t) => !t.ok);
-  if (failed.length === 0) return [];
+  if (failed.length === 0) return migrationVerdict(probe);
 
   // Every table failing the same way is one problem, not nine — almost always
   // the host being unreachable or the key being wrong. Say it once.
@@ -146,5 +208,23 @@ export function buildDatabaseVerdict(probe: DatabaseProbe): string[] {
     verdict.push(`database: \`${table.table}\` is not readable — ${table.error}`);
   }
 
+  verdict.push(...migrationVerdict(probe));
+
   return verdict;
+}
+
+/**
+ * Half-applied migrations, named with their consequence.
+ *
+ * Reported separately from the table checks because the failure mode is the
+ * opposite one: nothing is broken, everything reads fine, and the damage shows
+ * up later as data that is quietly wrong.
+ */
+export function migrationVerdict(probe: DatabaseProbe): string[] {
+  return probe.migrations
+    .filter((migration) => !migration.applied)
+    .map(
+      (migration) =>
+        `database: migration ${migration.migration} has not been applied — ${migration.consequence}. Run supabase/migrations/${migration.migration}.sql in the Supabase SQL editor.`,
+    );
 }

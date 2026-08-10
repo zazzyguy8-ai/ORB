@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDatabaseVerdict,
   describeDbError,
+  EXPECTED_COLUMNS,
   EXPECTED_TABLES,
+  migrationVerdict,
   type DatabaseProbe,
+  type MigrationProbe,
   type TableProbe,
 } from '@/lib/diagnostics/database';
 
@@ -15,11 +18,24 @@ const table = (over: Partial<TableProbe> = {}): TableProbe => ({
   ...over,
 });
 
-const probe = (tables: TableProbe[]): DatabaseProbe => ({
+/** Every later migration applied — the default a healthy deployment is in. */
+const applied = (): MigrationProbe[] =>
+  EXPECTED_COLUMNS.map((expected) => ({
+    migration: expected.migration,
+    applied: true,
+    error: null,
+    consequence: expected.consequence,
+  }));
+
+const probe = (
+  tables: TableProbe[],
+  migrations: MigrationProbe[] = applied(),
+): DatabaseProbe => ({
   configured: true,
   host: 'project.supabase.co',
   latencyMs: 40,
   tables,
+  migrations,
 });
 
 const allHealthy = () => EXPECTED_TABLES.map((name) => table({ table: name }));
@@ -78,6 +94,7 @@ describe('buildDatabaseVerdict', () => {
       host: null,
       latencyMs: 0,
       tables: [],
+      migrations: [],
     });
     expect(verdict[0]).toContain('not configured');
     expect(verdict[0]).toContain('analysis still works');
@@ -138,5 +155,39 @@ describe('verdict noise', () => {
     tables[0] = table({ table: 'users', ok: false, rows: null, error: 'permission denied' });
     tables[1] = table({ table: 'tokens', ok: false, rows: null, error: 'relation does not exist' });
     expect(buildDatabaseVerdict(probe(tables)).length).toBeGreaterThan(1);
+  });
+});
+
+describe('migration probe', () => {
+  const pending = (): MigrationProbe[] =>
+    applied().map((migration) => ({
+      ...migration,
+      applied: false,
+      error: 'column analysis_outcomes.late_by_seconds does not exist',
+    }));
+
+  it('reports a half-applied schema even though every table reads fine', () => {
+    // The failure this exists for: nothing is broken, nothing errors, and the
+    // data written from tomorrow on is quietly wrong.
+    const verdict = buildDatabaseVerdict(probe(allHealthy(), pending()));
+
+    expect(verdict).toHaveLength(1);
+    expect(verdict[0]).toContain('0002_outcome_staleness');
+    expect(verdict[0]).toContain('has not been applied');
+  });
+
+  it('names the consequence, not just the missing migration', () => {
+    // A verdict that only says "run this file" gives no basis to judge urgency.
+    expect(migrationVerdict(probe(allHealthy(), pending()))[0]).toContain('stale');
+  });
+
+  it('points at the file to run', () => {
+    expect(migrationVerdict(probe(allHealthy(), pending()))[0]).toContain(
+      'supabase/migrations/0002_outcome_staleness.sql',
+    );
+  });
+
+  it('says nothing when every migration is applied', () => {
+    expect(migrationVerdict(probe(allHealthy()))).toEqual([]);
   });
 });
