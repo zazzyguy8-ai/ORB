@@ -1,4 +1,5 @@
 import { getDb } from '@/lib/db/client';
+import type { PreviousAnalysis } from '@/lib/decision/delta';
 import type { AnalysisResult, CollectedData } from '@/lib/types/domain';
 
 /**
@@ -192,6 +193,45 @@ async function writeWalletEvents(analysisId: string, tokenId: string, data: Coll
     })),
     { onConflict: 'tx_signature,wallet,side', ignoreDuplicates: true },
   );
+}
+
+/**
+ * The most recent stored analysis for a token, excluding one id.
+ *
+ * Read before the new row is written, so "previous" means the last time we
+ * looked — not the analysis currently being produced.
+ */
+export async function getPreviousAnalysis(
+  chain: string,
+  address: string,
+): Promise<PreviousAnalysis | null> {
+  const db = getDb();
+  if (!db) return null;
+
+  try {
+    const { data, error } = await db
+      .from('analyses')
+      .select('id,decision,score,confidence,created_at,price_usd,liquidity_usd')
+      .eq('chain', chain)
+      .eq('address', address)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id as string,
+      decision: data.decision as PreviousAnalysis['decision'],
+      score: Number(data.score),
+      confidence: Number(data.confidence),
+      createdAt: data.created_at as string,
+      priceUsd: data.price_usd === null ? null : Number(data.price_usd),
+      liquidityUsd: data.liquidity_usd === null ? null : Number(data.liquidity_usd),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export interface HistoryRow {

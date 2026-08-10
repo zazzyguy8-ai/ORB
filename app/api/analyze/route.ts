@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { validateSolanaAddress, QUOTE_MINTS } from '@/lib/chains/solana';
 import { env } from '@/lib/config/env';
 import { getUserIdFromToken } from '@/lib/db/client';
-import { persistAnalysis } from '@/lib/db/repo';
+import { buildDelta } from '@/lib/decision/delta';
+import { getPreviousAnalysis, persistAnalysis } from '@/lib/db/repo';
 import { runAnalysis } from '@/lib/pipeline/analyze';
 import {
   checkIpLimit,
@@ -71,7 +72,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { result, collected } = await runAnalysis(validation.address);
+    // Read the previous analysis alongside the new one — it must be fetched
+    // before persistAnalysis writes the current row, or "previous" would be
+    // this very analysis.
+    const [{ result, collected }, previous] = await Promise.all([
+      runAnalysis(validation.address),
+      getPreviousAnalysis('solana', validation.address),
+    ]);
 
     if (result.availability.market !== 'ok') {
       // Without market data there is no token to talk about — do not publish a
@@ -93,6 +100,15 @@ export async function POST(request: Request) {
         },
         { status: unreachable ? 503 : 404 },
       );
+    }
+
+    if (previous) {
+      result.delta = buildDelta(previous, {
+        decision: result.decision,
+        score: result.score.total,
+        priceUsd: result.market?.priceUsd ?? null,
+        liquidityUsd: result.market?.liquidityUsd ?? null,
+      });
     }
 
     const analysisId = await persistAnalysis(result, { userId, data: collected });

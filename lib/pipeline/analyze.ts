@@ -175,6 +175,7 @@ export async function runAnalysis(
     },
     persisted: false,
     createdAt: new Date(startedAt).toISOString(),
+    delta: null,
   };
 
   return { result, collected: data };

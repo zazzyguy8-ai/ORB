@@ -7,6 +7,8 @@
  * score and an invented one.
  */
 
+import type { AnalysisDelta } from '@/lib/decision/delta';
+
 export type Chain = 'solana';
 
 export type Decision = 'BUY' | 'WATCH' | 'AVOID';
@@ -349,4 +351,9 @@ export interface AnalysisResult {
   timings: AnalysisTimings;
   persisted: boolean;
   createdAt: string;
+  /**
+   * Set when this token has been analysed before. The comparison is the one
+   * thing a live data feed cannot reproduce — it needs our own history.
+   */
+  delta: AnalysisDelta | null;
 }

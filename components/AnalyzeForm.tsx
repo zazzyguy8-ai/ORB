@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DecisionCard } from '@/components/DecisionCard';
 import { DeepDive } from '@/components/analysis/DeepDive';
+import { DeltaBanner } from '@/components/analysis/DeltaBanner';
 import { ResultActions } from '@/components/analysis/ResultActions';
 import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
@@ -134,6 +135,7 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         <div className="space-y-4">
           <DecisionCard result={result} />
           <ResultActions result={result} />
+          {result.delta && <DeltaBanner delta={result.delta} />}
           <RiskFlags flags={result.riskFlags} unavailable={result.unavailable} />
           <SignalGrid score={result.score} />
           <DeepDive result={result} />
