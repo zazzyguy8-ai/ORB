@@ -8,6 +8,7 @@ import { ResultActions } from '@/components/analysis/ResultActions';
 import { SignalGrid } from '@/components/analysis/SignalGrid';
 import { RiskFlags } from '@/components/RiskFlags';
 import { validateSolanaAddress } from '@/lib/chains/solana';
+import { useRecentTokens } from '@/lib/hooks/useRecentTokens';
 import { getAccessToken } from '@/lib/supabase/browser';
 import type { AnalysisResult } from '@/lib/types/domain';
 
@@ -35,8 +36,28 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { recent, remember } = useRecentTokens();
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  // A trader arrives with the address already on the clipboard, so the input is
+  // focused on mount and "/" refocuses it from anywhere on the page.
+  useEffect(() => {
+    inputRef.current?.focus();
+
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      if (event.key === '/' && !typing) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   async function analyze(event: React.FormEvent, override?: string) {
     event.preventDefault();
@@ -73,7 +94,14 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         return;
       }
 
-      setResult(payload as AnalysisResult);
+      const analysis = payload as AnalysisResult;
+      setResult(analysis);
+      remember({
+        address: analysis.address,
+        symbol: analysis.symbol,
+        decision: analysis.decision,
+        at: Date.now(),
+      });
     } catch {
       setError('Could not reach the analysis service.');
     } finally {
@@ -86,6 +114,7 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
     <div className="space-y-5">
       <form onSubmit={analyze} className="flex flex-col gap-2.5 sm:flex-row">
         <input
+          ref={inputRef}
           className="input"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
@@ -101,22 +130,55 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
         </button>
       </form>
 
-      {!result && !loading && (
+      {!loading && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-600">Try one:</span>
-          {EXAMPLES.map((example) => (
-            <button
-              key={example.address}
-              type="button"
-              className="pill"
-              onClick={(e) => {
-                setAddress(example.address);
-                void analyze(e, example.address);
-              }}
-            >
-              {example.label}
-            </button>
-          ))}
+          {recent.length > 0 ? (
+            <>
+              <span className="text-xs text-slate-600">Recent:</span>
+              {recent.map((token) => (
+                <button
+                  key={token.address}
+                  type="button"
+                  className="pill"
+                  onClick={(e) => {
+                    setAddress(token.address);
+                    void analyze(e, token.address);
+                  }}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      token.decision === 'BUY'
+                        ? 'bg-signal-buy'
+                        : token.decision === 'AVOID'
+                          ? 'bg-signal-avoid'
+                          : 'bg-signal-watch'
+                    }`}
+                    aria-hidden
+                  />
+                  {token.symbol ? `$${token.symbol}` : `${token.address.slice(0, 4)}…`}
+                </button>
+              ))}
+            </>
+          ) : (
+            !result && (
+              <>
+                <span className="text-xs text-slate-600">Try one:</span>
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example.address}
+                    type="button"
+                    className="pill"
+                    onClick={(e) => {
+                      setAddress(example.address);
+                      void analyze(e, example.address);
+                    }}
+                  >
+                    {example.label}
+                  </button>
+                ))}
+              </>
+            )
+          )}
         </div>
       )}
 
