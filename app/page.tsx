@@ -70,7 +70,7 @@ export default function LandingPage() {
         <section>
           <p className="label text-center">What you get back</p>
           <div className="ring-gradient mx-auto mt-6 max-w-2xl overflow-hidden rounded-4xl">
-            <div className="rounded-4xl bg-gradient-to-b from-ink-800/70 to-ink-950/70 p-6 backdrop-blur-xl sm:p-8">
+            <div className="rounded-4xl bg-gradient-to-b from-ink-800/70 to-ink-950/70 p-6 sm:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-slate-400">
                   EXA
@@ -213,7 +213,7 @@ export default function LandingPage() {
       {/* The disclaimer, given its own weight rather than hidden in a footer  */}
       {/* ------------------------------------------------------------------ */}
       <Reveal>
-        <section className="mx-auto max-w-2xl rounded-3xl border border-white/[0.07] bg-white/[0.02] p-7 backdrop-blur-md">
+        <section className="mx-auto max-w-2xl rounded-3xl border border-white/[0.07] bg-white/[0.02] p-7">
           <p className="font-semibold text-white">What this is not</p>
           <p className="mt-2.5 text-sm leading-relaxed text-slate-400">
             ORB Signal does not predict prices and makes no claim about future performance. A BUY

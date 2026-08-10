@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { siteUrl } from '@/lib/config/site';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 import { display, mono } from '@/app/fonts';
 import './globals.css';
 
@@ -39,18 +40,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-screen flex-col">
         <Aurora />
 
-        <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-ink-975/60 backdrop-blur-xl">
+        <header className="header-blur sticky top-0 z-20 border-b border-white/[0.06] bg-ink-975/70 backdrop-blur-xl">
           <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3.5">
             <Link
               href="/"
               className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-[15px] font-bold tracking-tight text-slate-100"
             >
-              {/* The mark: a filled orb with a slow halo. Violet, not green —
-                  green on this page always means BUY. */}
-              <span className="relative flex h-6 w-6 items-center justify-center" aria-hidden>
-                <span className="absolute inset-0 rounded-full bg-iris-500/30 blur-md" />
-                <span className="relative h-3.5 w-3.5 rounded-full bg-gradient-to-br from-iris-200 via-iris-400 to-iris-600 shadow-[0_0_12px_rgba(157,133,249,0.9)]" />
-              </span>
+              {/* The mark. No filter on it: this sits in a sticky header, and
+                  a blur here would be re-rasterised on every scroll frame. */}
+              <Logo className="h-7 w-7 shrink-0" />
               <span className="sm:hidden">ORB</span>
               <span className="hidden sm:inline">ORB Signal</span>
             </Link>
