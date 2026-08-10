@@ -118,8 +118,16 @@ loss into data.
 
 ```bash
 curl -sH "authorization: Bearer $CRON_SECRET" \
-  "https://<host>/api/diagnostics" | jq '{verdict, rows: .database.tables}'
+  "https://<host>/api/diagnostics" | jq '{verdict, rows: .database.tables, outcomes}'
 ```
+
+`outcomes` counts every checkpoint by status. It is the only place the health of
+outcome tracking is visible at all — the tracker is background work nobody waits
+on, so it can stop dead and the only symptom is a track record that stays empty,
+which looks exactly like "not enough calls yet". Two verdict lines come from it,
+and they have different fixes: **due and unpriced** means the worker is not
+running (add a scheduler), **stale** means it runs but arrives after the
+checkpoint stopped meaning what it says (schedule it more often).
 
 **`verdict: []` means everything is healthy.** Otherwise each line names one
 problem in plain language. The cases worth recognising:

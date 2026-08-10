@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { validateSolanaAddress } from '@/lib/chains/solana';
 import { env, isAiConfigured, isSupabaseConfigured, providerAvailability } from '@/lib/config/env';
 import { buildDatabaseVerdict, probeDatabase } from '@/lib/diagnostics/database';
+import { buildOutcomeVerdict, probeOutcomes } from '@/lib/diagnostics/outcomes';
 import { DEFAULT_PROBE_MINT, probeProviders } from '@/lib/diagnostics/probe';
 import { SCORING_VERSION } from '@/lib/scoring/weights';
 
@@ -40,16 +41,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const [report, database] = await Promise.all([
+  const [report, database, outcomes] = await Promise.all([
     probeProviders(validation.address),
     probeDatabase(),
+    probeOutcomes(),
   ]);
 
   return NextResponse.json({
     ...report,
     // Schema problems come first: without them nothing is recorded at all.
-    verdict: [...buildDatabaseVerdict(database), ...report.verdict],
+    verdict: [
+      ...buildDatabaseVerdict(database),
+      ...report.verdict,
+      ...buildOutcomeVerdict(outcomes),
+    ],
     database,
+    outcomes,
     usingDefaultToken: requested === null,
     config: {
       scoringVersion: SCORING_VERSION,
