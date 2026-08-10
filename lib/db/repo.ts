@@ -195,27 +195,44 @@ async function writeWalletEvents(analysisId: string, tokenId: string, data: Coll
   );
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * The token's recent analyses, newest first.
  *
  * One query serves two features: the first row is "last time we looked" for the
  * delta, and the whole list is the score history. Read before the new row is
  * written, so the current analysis is never its own predecessor.
+ *
+ * Scope follows the same rule as the permalink: ownerless analyses are shared,
+ * and a signed-in user additionally sees their own. Their research does not
+ * become part of a stranger's chart.
  */
 export async function getAnalysisHistoryForToken(
   chain: string,
   address: string,
-  limit = 24,
+  options: { userId?: string | null; limit?: number } = {},
 ): Promise<PreviousAnalysis[]> {
   const db = getDb();
   if (!db) return [];
 
+  const limit = options.limit ?? 24;
+  const userId = options.userId ?? null;
+
   try {
-    const { data, error } = await db
+    let query = db
       .from('analyses')
       .select('id,decision,score,confidence,created_at,price_usd,liquidity_usd')
       .eq('chain', chain)
-      .eq('address', address)
+      .eq('address', address);
+
+    // The id is interpolated into a PostgREST filter expression, so it is
+    // checked against the uuid shape first rather than trusted.
+    query = userId && UUID.test(userId)
+      ? query.or(`user_id.is.null,user_id.eq.${userId}`)
+      : query.is('user_id', null);
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .limit(Math.min(limit, 100));
 
@@ -239,8 +256,9 @@ export async function getAnalysisHistoryForToken(
 export async function getPreviousAnalysis(
   chain: string,
   address: string,
+  userId: string | null = null,
 ): Promise<PreviousAnalysis | null> {
-  const rows = await getAnalysisHistoryForToken(chain, address, 1);
+  const rows = await getAnalysisHistoryForToken(chain, address, { userId, limit: 1 });
   return rows[0] ?? null;
 }
 

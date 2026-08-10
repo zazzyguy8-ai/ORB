@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     // would be this very analysis.
     const [{ result, collected }, history] = await Promise.all([
       runAnalysis(validation.address),
-      getAnalysisHistoryForToken('solana', validation.address),
+      getAnalysisHistoryForToken('solana', validation.address, { userId }),
     ]);
     const previous = history[0] ?? null;
 
