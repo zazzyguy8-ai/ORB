@@ -37,8 +37,35 @@ export function SignalGrid({ score }: { score: ScoreResult }) {
         {score.categories.map((category) => (
           <CategoryCard key={category.category} category={category} />
         ))}
+        {/* Seven categories leave a hole in a three-column grid. Rather than an
+            empty cell, the last slot carries the two numbers that qualify every
+            other card: how much of the model ran, and which model it was. */}
+        <CoverageCard score={score} covered={covered} />
       </div>
     </section>
+  );
+}
+
+function CoverageCard({ score, covered }: { score: ScoreResult; covered: number }) {
+  const coveragePct = score.coverage * 100;
+
+  return (
+    <div className="rounded-xl border border-dashed border-ink-700/70 bg-ink-900/20 p-3.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-300">Data coverage</p>
+        <p className="tabular font-mono text-sm font-bold text-slate-300">
+          {coveragePct.toFixed(0)}%
+        </p>
+      </div>
+
+      <Meter value={coveragePct} className="mt-2.5" />
+
+      <p className="mt-2 text-xs leading-relaxed text-slate-500">
+        {covered} of {score.categories.length} categories had data. Missing ones are removed from
+        the average, never scored zero.
+      </p>
+      <p className="tabular mt-1 font-mono text-[11px] text-slate-600">{score.version}</p>
+    </div>
   );
 }
 

@@ -44,10 +44,15 @@ export function ScoreHistory({
     point,
   }));
 
-  const path = coords.map((c) => `${c.x.toFixed(2)},${c.y.toFixed(2)}`).join(' ');
+  const line = coords.map((c) => `${c.x.toFixed(2)},${c.y.toFixed(2)}`).join(' ');
+  // Closing the polygon along the baseline turns the same points into an area,
+  // which reads as a chart at this size where a hairline reads as a scratch.
+  const area = `0,${height} ${line} ${width},${height}`;
+
   const first = points[0];
   const change = current.score - first.score;
   const span = elapsed(first.at, current.at);
+  const trend = change > 1 ? '#2ee88a' : change < -1 ? '#ff5a52' : '#64748b';
 
   return (
     <section className="card animate-fade-up" style={{ animationDelay: '160ms' }}>
@@ -59,52 +64,75 @@ export function ScoreHistory({
       </div>
 
       <div className="mt-3 flex items-center gap-4">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          preserveAspectRatio="none"
-          className="h-16 flex-1"
-          role="img"
-          aria-label={`Score history: ${points.map((p) => p.score.toFixed(0)).join(', ')}`}
-        >
-          {/* Decision band edges, so a line crossing them means something. */}
-          <line
-            x1="0"
-            x2={width}
-            y1={height - (68 / 100) * height}
-            y2={height - (68 / 100) * height}
-            stroke="#2ee88a"
-            strokeOpacity="0.18"
-            strokeWidth="0.4"
-          />
-          <line
-            x1="0"
-            x2={width}
-            y1={height - (45 / 100) * height}
-            y2={height - (45 / 100) * height}
-            stroke="#ffc043"
-            strokeOpacity="0.18"
-            strokeWidth="0.4"
-          />
-          <polyline
-            points={path}
-            fill="none"
-            stroke="#64748b"
-            strokeWidth="0.8"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
+        <div className="relative flex-1">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="none"
+            className="h-16 w-full"
+            role="img"
+            aria-label={`Score history: ${points.map((p) => p.score.toFixed(0)).join(', ')}`}
+          >
+            <defs>
+              <linearGradient id="score-history-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={trend} stopOpacity="0.28" />
+                <stop offset="100%" stopColor={trend} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {/* Decision band edges, so a line crossing one means something. */}
+            {[
+              { at: 68, color: '#2ee88a' },
+              { at: 45, color: '#ffc043' },
+            ].map((band) => (
+              <line
+                key={band.at}
+                x1="0"
+                x2={width}
+                y1={height - (band.at / 100) * height}
+                y2={height - (band.at / 100) * height}
+                stroke={band.color}
+                strokeOpacity="0.2"
+                strokeDasharray="2 2"
+                strokeWidth="0.4"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+
+            <polygon points={area} fill="url(#score-history-fill)" />
+            <polyline
+              points={line}
+              fill="none"
+              stroke={trend}
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+
+          {/* Markers live outside the SVG: the chart is stretched to fill its
+              box, and anything drawn inside it stretches with it — circles
+              included, which came out as ellipses. */}
           {coords.map((c, index) => (
-            <circle
+            <span
               key={`${c.point.at}-${index}`}
-              cx={c.x}
-              cy={c.y}
-              r={index === coords.length - 1 ? 1.6 : 1}
-              fill={DOT_COLOR[c.point.decision]}
-              fillOpacity={index === coords.length - 1 ? 1 : 0.6}
+              className="absolute -translate-x-1/2 translate-y-1/2 rounded-full"
+              style={{
+                left: `${(c.x / width) * 100}%`,
+                bottom: `${(1 - c.y / height) * 100}%`,
+                width: index === coords.length - 1 ? 8 : 5,
+                height: index === coords.length - 1 ? 8 : 5,
+                background: DOT_COLOR[c.point.decision],
+                opacity: index === coords.length - 1 ? 1 : 0.65,
+                boxShadow:
+                  index === coords.length - 1
+                    ? `0 0 0 3px ${DOT_COLOR[c.point.decision]}22`
+                    : undefined,
+              }}
+              aria-hidden
             />
           ))}
-        </svg>
+        </div>
 
         <div className="shrink-0 text-right">
           <p
