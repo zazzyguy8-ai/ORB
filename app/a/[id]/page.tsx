@@ -107,7 +107,7 @@ export default async function SharedAnalysisPage({ params }: { params: { id: str
           </div>
         </div>
 
-        <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-ink-700/60 pt-4">
+        <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-white/[0.07] pt-4">
           <Stat label="Price at call" value={formatUsd(analysis.priceUsd)} />
           <Stat label="Market cap" value={formatUsd(analysis.marketCapUsd)} />
           <Stat label="Liquidity" value={formatUsd(analysis.liquidityUsd)} />
@@ -257,7 +257,7 @@ function Checkpoint({ outcome }: { outcome: SharedOutcome }) {
           : 'text-slate-400';
 
   return (
-    <li className="rounded-xl border border-ink-700/60 bg-ink-900/40 px-3 py-3">
+    <li className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3 py-3">
       <p className="label">{CHECKPOINT_LABEL[outcome.checkpoint] ?? outcome.checkpoint}</p>
       <p className={`tabular mt-1.5 font-mono text-lg font-semibold ${tone}`}>
         {pending || value === null ? (

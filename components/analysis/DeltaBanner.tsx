@@ -24,7 +24,7 @@ export function DeltaBanner({ delta }: { delta: AnalysisDelta }) {
     ? delta.scoreDelta > 0
       ? 'border-signal-buy/35 bg-signal-buy/[0.06]'
       : 'border-signal-avoid/35 bg-signal-avoid/[0.06]'
-    : 'border-ink-700 bg-ink-900/50';
+    : 'border-white/[0.07] bg-white/[0.03]';
 
   return (
     <section
@@ -55,7 +55,7 @@ export function DeltaBanner({ delta }: { delta: AnalysisDelta }) {
 
       <p className="mt-2 text-sm leading-relaxed text-slate-300">{delta.summary}</p>
 
-      <dl className="mt-3.5 grid grid-cols-3 gap-3 border-t border-ink-700/60 pt-3">
+      <dl className="mt-3.5 grid grid-cols-3 gap-3 border-t border-white/[0.07] pt-3">
         {delta.lines.map((line) => (
           <div key={line.label}>
             <dt className="label">{line.label}</dt>

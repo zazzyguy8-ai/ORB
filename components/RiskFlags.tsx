@@ -15,7 +15,7 @@ const SEVERITY_STYLES: Record<Severity, { chip: string; row: string }> = {
   },
   low: {
     chip: 'bg-ink-600 text-slate-300',
-    row: 'border-ink-600 bg-ink-800/40',
+    row: 'border-white/10 bg-white/[0.04]',
   },
 };
 
@@ -55,7 +55,7 @@ export function RiskFlags({ flags, unavailable }: { flags: RiskFlag[]; unavailab
       )}
 
       {unavailable.length > 0 && (
-        <div className="mt-4 border-t border-ink-700/70 pt-3.5">
+        <div className="mt-4 border-t border-white/[0.07] pt-3.5">
           {/* An unchecked category is stated as unchecked, never as clean. */}
           <p className="label">Not checked</p>
           <ul className="mt-2 flex flex-wrap gap-1.5">

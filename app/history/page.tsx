@@ -110,8 +110,8 @@ export default function HistoryPage() {
                     onClick={() => setFilter(f)}
                     className={`rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-colors ${
                       active
-                        ? 'bg-ink-700 text-slate-100'
-                        : 'text-slate-500 hover:bg-ink-800 hover:text-slate-300'
+                        ? 'bg-iris-500/20 text-white ring-1 ring-iris-400/30'
+                        : 'text-slate-500 hover:bg-white/[0.06] hover:text-slate-200'
                     }`}
                   >
                     {f}

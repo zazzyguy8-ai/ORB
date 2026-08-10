@@ -50,7 +50,7 @@ function CoverageCard({ score, covered }: { score: ScoreResult; covered: number 
   const coveragePct = score.coverage * 100;
 
   return (
-    <div className="rounded-xl border border-dashed border-ink-700/70 bg-ink-900/20 p-3.5">
+    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.015] p-4">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm font-semibold text-slate-300">Data coverage</p>
         <p className="tabular font-mono text-sm font-bold text-slate-300">
@@ -78,10 +78,10 @@ function CategoryCard({ category }: { category: CategoryScore }) {
 
   return (
     <div
-      className={`rounded-xl border p-3.5 transition-colors ${
+      className={`rounded-2xl border p-4 transition-all duration-300 ${
         category.score === null
-          ? 'border-ink-700/60 bg-ink-900/30'
-          : 'border-ink-700 bg-ink-850/60 hover:border-ink-600'
+          ? 'border-white/[0.05] bg-white/[0.015]'
+          : 'border-white/[0.07] bg-white/[0.03] hover:-translate-y-0.5 hover:border-iris-400/25 hover:bg-white/[0.05]'
       }`}
     >
       <div className="flex items-baseline justify-between gap-2">

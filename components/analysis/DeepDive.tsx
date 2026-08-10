@@ -49,8 +49,8 @@ export function DeepDive({ result }: { result: AnalysisResult }) {
               onClick={() => setTab(t.id)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 tab === t.id
-                  ? 'bg-ink-700 text-slate-100'
-                  : 'text-slate-500 hover:bg-ink-800 hover:text-slate-300'
+                  ? 'bg-iris-500/20 text-white ring-1 ring-iris-400/30'
+                  : 'text-slate-500 hover:bg-white/[0.06] hover:text-slate-200'
               }`}
             >
               {t.label}
@@ -72,7 +72,7 @@ export function DeepDive({ result }: { result: AnalysisResult }) {
 
 function Unavailable({ what }: { what: string }) {
   return (
-    <p className="rounded-lg border border-ink-700 bg-ink-900/40 px-4 py-6 text-center text-sm text-slate-500">
+    <p className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-6 text-center text-sm text-slate-500">
       {what} unavailable for this token.
     </p>
   );
@@ -87,7 +87,7 @@ function SecurityPanel({ result }: { result: AnalysisResult }) {
 
   return (
     <div className="space-y-5">
-      <ul className="divide-y divide-ink-700/60">
+      <ul className="divide-y divide-white/[0.06]">
         <CheckRow
           label="Mint authority revoked"
           state={s.mintAuthorityEnabled === null ? 'unknown' : s.mintAuthorityEnabled ? 'fail' : 'pass'}
@@ -160,7 +160,7 @@ function SecurityPanel({ result }: { result: AnalysisResult }) {
         />
       </ul>
 
-      <div className="rounded-xl border border-ink-700 bg-ink-900/40 p-4">
+      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
         <p className="label">Creator</p>
         {s.creatorAddress ? (
           <>
@@ -309,14 +309,14 @@ function TradingPanel({ result }: { result: AnalysisResult }) {
         <div className="mt-2 overflow-x-auto">
           <table className="w-full min-w-[26rem] text-sm">
             <thead>
-              <tr className="border-b border-ink-700 text-left">
+              <tr className="border-b border-white/[0.07] text-left">
                 <th className="pb-2 font-medium text-slate-500">Window</th>
                 <th className="pb-2 text-right font-medium text-slate-500">Price</th>
                 <th className="pb-2 text-right font-medium text-slate-500">Volume</th>
                 <th className="pb-2 text-right font-medium text-slate-500">Trades</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-700/50">
+            <tbody className="divide-y divide-white/[0.06]">
               {windows.map((w) => {
                 const { buys, sells } = m.txns[w.key];
                 const trades = buys !== null && sells !== null ? buys + sells : null;
@@ -354,7 +354,7 @@ function TradingPanel({ result }: { result: AnalysisResult }) {
       </div>
 
       {result.wallets ? (
-        <div className="rounded-xl border border-ink-700 bg-ink-900/40 p-4">
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="label">Large-wallet flow</p>
             <p className="text-[11px] text-slate-600">
@@ -378,7 +378,7 @@ function TradingPanel({ result }: { result: AnalysisResult }) {
           </p>
         </div>
       ) : (
-        <p className="rounded-xl border border-ink-700 bg-ink-900/40 px-4 py-3 text-xs text-slate-500">
+        <p className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 text-xs text-slate-500">
           Wallet activity unavailable — this deployment has no wallet data provider configured, so
           the category is excluded from the score rather than guessed.
         </p>
@@ -392,7 +392,7 @@ function ModelPanel({ result }: { result: AnalysisResult }) {
     <div className="space-y-5">
       <Levers result={result} />
 
-      <div className="space-y-4 border-t border-ink-700/60 pt-4">
+      <div className="space-y-4 border-t border-white/[0.07] pt-4">
         <p className="label">Every signal</p>
         {result.score.categories.map((category) => (
           <div key={category.category}>
@@ -428,7 +428,7 @@ function ModelPanel({ result }: { result: AnalysisResult }) {
         ))}
       </div>
 
-      <p className="border-t border-ink-700/60 pt-3 text-[11px] leading-relaxed text-slate-600">
+      <p className="border-t border-white/[0.07] pt-3 text-[11px] leading-relaxed text-slate-600">
         Scoring model {result.score.version}. Categories with no data are removed from the weighted
         average rather than scored zero, so a missing provider lowers coverage instead of the score.
       </p>
@@ -496,7 +496,7 @@ function PipelinePanel({ result }: { result: AnalysisResult }) {
         </ul>
       </div>
 
-      <div className="border-t border-ink-700/60 pt-3 text-[11px] leading-relaxed text-slate-600">
+      <div className="border-t border-white/[0.07] pt-3 text-[11px] leading-relaxed text-slate-600">
         <p>
           Explanation source: {result.explanation.source}
           {result.explanation.fallbackReason ? ` — ${result.explanation.fallbackReason}` : ''}
@@ -517,7 +517,7 @@ function Figure({
   valueClass?: string;
 }) {
   return (
-    <div className="rounded-lg border border-ink-700 bg-ink-900/50 px-3 py-2.5">
+    <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5">
       <p className="label">{label}</p>
       <p className={`tabular mt-1 font-mono text-sm font-medium ${valueClass}`}>{value}</p>
     </div>

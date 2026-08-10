@@ -53,12 +53,12 @@ export function TokenIdentity({
           height={56}
           loading="lazy"
           onError={() => setImageFailed(true)}
-          className="h-14 w-14 shrink-0 rounded-full border border-ink-600 bg-ink-800 object-cover"
+          className="h-14 w-14 shrink-0 rounded-full border border-white/10 bg-white/[0.05] object-cover"
         />
       ) : (
         // A missing logo is normal for a token minted minutes ago — show the
         // ticker rather than a broken-image icon.
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-ink-600 bg-ink-800 text-sm font-bold tracking-tight text-slate-500">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-sm font-bold tracking-tight text-slate-500">
           {initials}
         </div>
       )}

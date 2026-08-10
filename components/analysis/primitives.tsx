@@ -90,7 +90,7 @@ export function CheckRow({
     pass: { icon: '✓', className: 'text-signal-buy border-signal-buy/40 bg-signal-buy/10' },
     fail: { icon: '✕', className: 'text-signal-avoid border-signal-avoid/40 bg-signal-avoid/10' },
     warn: { icon: '!', className: 'text-signal-watch border-signal-watch/40 bg-signal-watch/10' },
-    unknown: { icon: '?', className: 'text-slate-500 border-ink-600 bg-ink-800' },
+    unknown: { icon: '?', className: 'text-slate-500 border-white/10 bg-white/[0.05]' },
   }[state];
 
   return (

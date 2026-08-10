@@ -119,7 +119,7 @@ function Scoreboard({ record }: { record: TrackRecord }) {
       <div className="card overflow-x-auto p-0">
         <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-ink-700/70">
+            <tr className="border-b border-white/[0.07]">
               <th className="label px-5 py-3 text-left font-semibold">Decision</th>
               {record.decisions[0].checkpoints.map((c) => (
                 <th key={c.checkpoint} className="label px-3 py-3 text-right font-semibold">
@@ -132,7 +132,7 @@ function Scoreboard({ record }: { record: TrackRecord }) {
             {record.decisions.map((decision) => (
               <tr
                 key={decision.decision}
-                className="border-b border-ink-800/70 last:border-0 hover:bg-ink-800/25"
+                className="border-b border-white/[0.05] last:border-0 hover:bg-white/[0.03]"
               >
                 <th className="px-5 py-3.5 text-left">
                   <span

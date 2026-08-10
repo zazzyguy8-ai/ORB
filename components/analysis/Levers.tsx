@@ -44,7 +44,7 @@ export function Levers({ result }: { result: AnalysisResult }) {
         {levers.map((lever, index) => (
           <li
             key={lever.key}
-            className="animate-fade-up rounded-xl border border-ink-700/60 bg-ink-900/40 px-4 py-3"
+            className="animate-fade-up rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3"
             style={{ animationDelay: `${index * 45}ms` }}
           >
             <div className="flex items-baseline justify-between gap-3">

@@ -107,7 +107,7 @@ export function DecisionCard({ result }: { result: AnalysisResult }) {
           </div>
         </div>
 
-        <div className="mt-7 border-t border-ink-700/70 pt-5">
+        <div className="mt-7 border-t border-white/[0.07] pt-5">
           <p className="label">Why</p>
           <ul className="mt-2.5 space-y-2">
             {result.explanation.reasons.map((reason, i) => (
@@ -130,7 +130,7 @@ export function DecisionCard({ result }: { result: AnalysisResult }) {
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-px border-t border-ink-700/70 bg-ink-700/40 sm:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-px border-t border-white/[0.07] bg-ink-700/40 sm:grid-cols-5">
         <Stat label="Price" value={formatUsd(result.market?.priceUsd ?? null)} />
         <Stat label="1h" value={change1h.text} valueClass={change1h.className} />
         <Stat label="Liquidity" value={formatUsd(result.metrics.liquidityUsd)} />
@@ -151,7 +151,7 @@ function Stat({
   valueClass?: string;
 }) {
   return (
-    <div className="bg-ink-900/80 px-4 py-3.5">
+    <div className="bg-ink-950/70 px-4 py-3.5">
       <dt className="label">{label}</dt>
       <dd className={`tabular mt-1 font-mono text-sm font-medium ${valueClass}`}>{value}</dd>
     </div>

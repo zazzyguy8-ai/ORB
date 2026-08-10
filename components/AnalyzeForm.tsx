@@ -145,7 +145,7 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
           disabled={loading}
         />
         <button type="submit" className="btn-primary whitespace-nowrap" disabled={loading}>
-          {loading ? 'ANALYZING…' : 'ANALYZE'}
+          {loading ? 'Analyzing…' : 'Analyze'}
         </button>
       </form>
 
@@ -254,7 +254,7 @@ export function AnalyzeForm({ initialAddress = '' }: { initialAddress?: string }
 function LoadingState({ stage }: { stage: number }) {
   return (
     <div className="animate-fade-up space-y-4">
-      <div className="rounded-2xl border border-ink-700/80 bg-ink-900/60 p-6 sm:p-8">
+      <div className="rounded-3xl border border-white/[0.07] bg-white/[0.03] p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <div className="skeleton h-14 w-14 rounded-full" />
           <div className="space-y-2">
