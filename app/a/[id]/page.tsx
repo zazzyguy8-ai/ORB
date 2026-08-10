@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { formatUsd } from '@/lib/format';
-import { getSharedAnalysis, type SharedAnalysis, type SharedOutcome } from '@/lib/db/repo';
+import { unstable_noStore as noStore } from 'next/cache';
+import { lookupSharedAnalysis, type SharedAnalysis, type SharedOutcome } from '@/lib/db/repo';
 
 export const revalidate = 60;
 
 // The metadata pass and the page body both need the row; cache() makes that one
 // query per request instead of two.
-const load = cache(getSharedAnalysis);
+const load = cache(lookupSharedAnalysis);
 
 const CHECKPOINT_LABEL: Record<string, string> = {
   m5: '+5 min',
@@ -42,8 +43,9 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const analysis = await load(params.id);
-  if (!analysis) return { title: 'Analysis not found', robots: { index: false } };
+  const found = await load(params.id);
+  if (found.status !== 'ok') return { title: 'Analysis not found', robots: { index: false } };
+  const analysis = found.analysis;
 
   const name = analysis.symbol ? `$${analysis.symbol}` : analysis.address.slice(0, 6);
   const title = `${analysis.decision} · ${name}`;
@@ -65,8 +67,18 @@ export async function generateMetadata({
  * be worth. It is a receipt, so nothing on it is recomputed on read.
  */
 export default async function SharedAnalysisPage({ params }: { params: { id: string } }) {
-  const analysis = await load(params.id);
-  if (!analysis) notFound();
+  const found = await load(params.id);
+
+  if (found.status === 'error') {
+    // Never cache a failure as a Not Found: the render is reused for a minute,
+    // so one database hiccup would tell every visitor to a perfectly valid
+    // share link that the analysis does not exist.
+    noStore();
+    return <Unavailable />;
+  }
+
+  if (found.status === 'missing') notFound();
+  const analysis = found.analysis;
 
   const style = DECISION_STYLE[analysis.decision] ?? DECISION_STYLE.WATCH;
   const name = analysis.symbol ? `$${analysis.symbol}` : `${analysis.address.slice(0, 8)}…`;
@@ -170,6 +182,20 @@ export default async function SharedAnalysisPage({ params }: { params: { id: str
         This is a snapshot of one analysis, not a recommendation and not a prediction. Re-analyzing
         will produce a different result as the market moves.
       </p>
+    </div>
+  );
+}
+
+function Unavailable() {
+  return (
+    <div className="card py-12 text-center">
+      <p className="text-sm text-slate-300">This analysis could not be loaded right now.</p>
+      <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-600">
+        The link is fine — our storage did not answer. Reloading in a moment usually resolves it.
+      </p>
+      <Link href="/app" className="btn-ghost mt-5 inline-block">
+        Analyze a token instead
+      </Link>
     </div>
   );
 }

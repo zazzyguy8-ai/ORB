@@ -289,17 +289,26 @@ export interface SharedAnalysis {
   outcomes: SharedOutcome[];
 }
 
+export type SharedAnalysisLookup =
+  | { status: 'ok'; analysis: SharedAnalysis }
+  | { status: 'missing' }
+  | { status: 'error' };
+
 /**
  * A stored analysis by id, for its public permalink.
  *
- * Returns null for anything owned by a user: their analyses are theirs, and a
+ * Anything owned by a user reads as missing: their analyses are theirs, and a
  * guessable id must never expose them. The permalink is a receipt for a call
  * that was already public, not a back door into someone's history.
+ *
+ * 'missing' and 'error' are separate because the page caches its render. A
+ * database hiccup that returned "missing" would bake a Not Found for every
+ * visitor to a link that is perfectly valid.
  */
-export async function getSharedAnalysis(id: string): Promise<SharedAnalysis | null> {
+export async function lookupSharedAnalysis(id: string): Promise<SharedAnalysisLookup> {
   const db = getDb();
-  if (!db) return null;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  if (!db) return { status: 'error' };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { status: 'missing' };
 
   try {
     const { data, error } = await db
@@ -311,12 +320,13 @@ export async function getSharedAnalysis(id: string): Promise<SharedAnalysis | nu
       .is('user_id', null)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) return { status: 'error' };
+    if (!data) return { status: 'missing' };
     const row = data as any;
 
     const order = new Map(CHECKPOINTS.map((cp, index) => [cp.key as string, index]));
 
-    return {
+    const analysis: SharedAnalysis = {
       id: row.id,
       address: row.address,
       symbol: row.tokens?.symbol ?? null,
@@ -345,9 +355,17 @@ export async function getSharedAnalysis(id: string): Promise<SharedAnalysis | nu
             (order.get(a.checkpoint) ?? 99) - (order.get(b.checkpoint) ?? 99),
         ),
     };
+
+    return { status: 'ok', analysis };
   } catch {
-    return null;
+    return { status: 'error' };
   }
+}
+
+/** Convenience for callers that cannot act on the difference, like the OG image. */
+export async function getSharedAnalysis(id: string): Promise<SharedAnalysis | null> {
+  const result = await lookupSharedAnalysis(id);
+  return result.status === 'ok' ? result.analysis : null;
 }
 
 export interface HistoryRow {

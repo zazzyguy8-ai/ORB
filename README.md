@@ -97,6 +97,8 @@ lib/
   ai/                evidence builder, prompt, output validator, fallback
   pipeline/          orchestration
 supabase/migrations  schema
+scripts/preview-payload.ts   real pipeline over fixtures → preview.json
+scripts/fake-supabase.mjs    stand-in PostgREST for reviewing server pages
 tests/               fixture-driven, offline
 ```
 
