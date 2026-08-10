@@ -12,6 +12,7 @@ import {
   formatUsd,
   scoreText,
 } from '@/components/analysis/primitives';
+import { Levers } from '@/components/analysis/Levers';
 import type { AnalysisResult } from '@/lib/types/domain';
 
 type Tab = 'security' | 'holders' | 'trading' | 'model' | 'pipeline';
@@ -388,39 +389,45 @@ function TradingPanel({ result }: { result: AnalysisResult }) {
 
 function ModelPanel({ result }: { result: AnalysisResult }) {
   return (
-    <div className="space-y-4">
-      {result.score.categories.map((category) => (
-        <div key={category.category}>
-          <div className="flex items-baseline justify-between text-sm">
-            <span className="font-medium capitalize text-slate-300">{category.category}</span>
-            <span className={`tabular font-mono text-xs ${scoreText(category.score)}`}>
-              {category.score === null ? 'not measured' : `${category.score.toFixed(0)}/100`}
-            </span>
+    <div className="space-y-5">
+      <Levers result={result} />
+
+      <div className="space-y-4 border-t border-ink-700/60 pt-4">
+        <p className="label">Every signal</p>
+        {result.score.categories.map((category) => (
+          <div key={category.category}>
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="font-medium capitalize text-slate-300">{category.category}</span>
+              <span className={`tabular font-mono text-xs ${scoreText(category.score)}`}>
+                {category.score === null ? 'not measured' : `${category.score.toFixed(0)}/100`}
+              </span>
+            </div>
+            <Meter value={category.score} className="mt-1.5" />
+            <ul className="mt-2 space-y-1">
+              {category.contributions.map((c) => (
+                <li key={c.key} className="flex items-baseline justify-between gap-4 text-xs">
+                  <span className={c.value === null ? 'text-slate-600' : 'text-slate-500'}>
+                    {c.label}
+                  </span>
+                  <span className="tabular shrink-0 font-mono text-slate-500">
+                    {c.value === null ? (
+                      'no data'
+                    ) : (
+                      <>
+                        {Math.abs(c.value) >= 1000
+                          ? Math.round(c.value).toLocaleString('en-US')
+                          : c.value.toFixed(2)}
+                        <span className={`ml-2 ${scoreText(c.score)}`}>{c.score.toFixed(0)}</span>
+                      </>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <Meter value={category.score} className="mt-1.5" />
-          <ul className="mt-2 space-y-1">
-            {category.contributions.map((c) => (
-              <li key={c.key} className="flex items-baseline justify-between gap-4 text-xs">
-                <span className={c.value === null ? 'text-slate-600' : 'text-slate-500'}>
-                  {c.label}
-                </span>
-                <span className="tabular shrink-0 font-mono text-slate-500">
-                  {c.value === null ? (
-                    'no data'
-                  ) : (
-                    <>
-                      {Math.abs(c.value) >= 1000
-                        ? Math.round(c.value).toLocaleString('en-US')
-                        : c.value.toFixed(2)}
-                      <span className={`ml-2 ${scoreText(c.score)}`}>{c.score.toFixed(0)}</span>
-                    </>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+        ))}
+      </div>
+
       <p className="border-t border-ink-700/60 pt-3 text-[11px] leading-relaxed text-slate-600">
         Scoring model {result.score.version}. Categories with no data are removed from the weighted
         average rather than scored zero, so a missing provider lowers coverage instead of the score.
