@@ -25,6 +25,9 @@ const DECISION_STYLE: Record<string, { text: string; dot: string; border: string
 export default function HistoryPage() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [state, setState] = useState<'loading' | 'ready' | 'disabled'>('loading');
+  // Anonymous rows are the ownerless ones, so their permalinks are readable;
+  // a signed-in user's analyses are private and have no shareable page.
+  const [shareable, setShareable] = useState(false);
   const [filter, setFilter] = useState<Filter>('ALL');
 
   useEffect(() => {
@@ -39,6 +42,7 @@ export default function HistoryPage() {
         return;
       }
       setRows(payload.analyses ?? []);
+      setShareable(payload.scope === 'anonymous');
       setState('ready');
     })().catch(() => setState('disabled'));
   }, []);
@@ -164,6 +168,15 @@ export default function HistoryPage() {
                       <span className={`w-16 text-right text-sm font-bold ${style.text}`}>
                         {row.decision}
                       </span>
+                      {shareable && (
+                        <Link
+                          href={`/a/${row.id}`}
+                          className="pill"
+                          aria-label={`Open the saved analysis for ${row.symbol ?? row.address}`}
+                        >
+                          Open
+                        </Link>
+                      )}
                       <Link
                         href={`/app?address=${row.address}`}
                         className="pill"
@@ -181,8 +194,12 @@ export default function HistoryPage() {
           {/* Sets the expectation before the data exists, rather than shipping an
               empty column that looks broken. */}
           <p className="border-t border-ink-800 pt-4 text-xs leading-relaxed text-slate-600">
-            Price checkpoints at +5m, +15m, +1h, +6h and +24h are recorded for every analysis. Once
-            enough have matured, this page will show what each call was actually worth.
+            Price checkpoints at +5m, +15m, +1h, +6h and +24h are recorded for every analysis. Open
+            a saved analysis to see how its checkpoints resolved, or{' '}
+            <Link href="/track-record" className="text-slate-400 underline underline-offset-2">
+              see the track record across every call
+            </Link>
+            .
           </p>
         </>
       )}

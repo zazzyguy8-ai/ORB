@@ -48,8 +48,8 @@ export default function LandingPage() {
           <Link href="/app" className="btn-primary">
             TRY FREE
           </Link>
-          <Link href="/history" className="btn-ghost">
-            See recent analyses
+          <Link href="/track-record" className="btn-ghost">
+            See the track record
           </Link>
         </div>
       </section>
@@ -116,6 +116,8 @@ export default function LandingPage() {
           index="03"
           title="Scored against what happens next"
           body="Every analysis records the price at +5m, +15m, +1h, +6h and +24h, so the model can be measured instead of trusted."
+          href="/track-record"
+          cta="See the scoreboard"
         />
       </section>
 
@@ -161,12 +163,32 @@ export default function LandingPage() {
   );
 }
 
-function Feature({ index, title, body }: { index: string; title: string; body: string }) {
+function Feature({
+  index,
+  title,
+  body,
+  href,
+  cta,
+}: {
+  index: string;
+  title: string;
+  body: string;
+  href?: string;
+  cta?: string;
+}) {
   return (
-    <div className="card hover-lift hover:border-ink-600">
+    <div className="card hover-lift flex flex-col hover:border-ink-600">
       <span className="tabular font-mono text-xs text-slate-600">{index}</span>
       <h3 className="mt-2 font-semibold tracking-tight text-slate-100">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p>
+      {href && cta && (
+        <Link
+          href={href}
+          className="mt-3 text-sm font-medium text-signal-buy transition-colors hover:text-emerald-300"
+        >
+          {cta} →
+        </Link>
+      )}
     </div>
   );
 }
