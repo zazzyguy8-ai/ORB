@@ -356,4 +356,10 @@ export interface AnalysisResult {
    * thing a live data feed cannot reproduce — it needs our own history.
    */
   delta: AnalysisDelta | null;
+  /**
+   * True when this analysis is stored without an owner, so its permalink can be
+   * read by anyone. A signed-in user's analyses are theirs alone — sharing one
+   * would publish their research to whoever received the link.
+   */
+  shareable?: boolean;
 }

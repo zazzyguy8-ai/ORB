@@ -36,13 +36,29 @@ export function ResultActions({ result }: { result: AnalysisResult }) {
         {copied === 'address' ? '✓ Copied' : 'Copy contract'}
       </button>
 
-      {result.id && (
+      {result.id && result.shareable ? (
+        <>
+          <button
+            type="button"
+            className="pill"
+            onClick={() => copy('link', `${window.location.origin}/a/${result.id}`)}
+          >
+            {copied === 'link' ? '✓ Copied' : 'Copy share link'}
+          </button>
+          {/* The permalink is the saved call, so it is worth opening: it keeps
+              filling in with the +5m…+24h outcomes long after this tab is gone. */}
+          <a href={`/a/${result.id}`} target="_blank" rel="noopener" className="pill">
+            Open saved result
+            <span aria-hidden className="text-slate-600">
+              ↗
+            </span>
+          </a>
+        </>
+      ) : (
         <button
           type="button"
           className="pill"
-          onClick={() =>
-            copy('link', `${window.location.origin}/app?address=${result.address}`)
-          }
+          onClick={() => copy('link', `${window.location.origin}/app?address=${result.address}`)}
         >
           {copied === 'link' ? '✓ Copied' : 'Copy link'}
         </button>

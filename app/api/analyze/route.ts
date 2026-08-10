@@ -117,6 +117,9 @@ export async function POST(request: Request) {
       ...result,
       id: analysisId,
       persisted: analysisId !== null,
+      // Only ownerless rows are readable at their permalink, so only those get
+      // a share affordance in the UI.
+      shareable: analysisId !== null && userId === null,
       timings: { ...result.timings, totalMs: Date.now() - startedAt },
     });
   } catch (err) {

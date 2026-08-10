@@ -109,32 +109,6 @@ export function CheckRow({
   );
 }
 
-export function formatUsd(value: number | null): string {
-  if (value === null) return '—';
-  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`;
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
-  if (value >= 1) return `$${value.toFixed(2)}`;
-  if (value > 0) return `$${value.toPrecision(3)}`;
-  return '$0';
-}
-
-export function formatPct(value: number | null, digits = 1): string {
-  return value === null ? '—' : `${(value * 100).toFixed(digits)}%`;
-}
-
-export function formatCount(value: number | null): string {
-  return value === null ? '—' : Math.round(value).toLocaleString('en-US');
-}
-
-export function changeClass(value: number | null): string {
-  if (value === null) return 'text-slate-500';
-  if (value > 0) return 'text-signal-buy';
-  if (value < 0) return 'text-signal-avoid';
-  return 'text-slate-400';
-}
-
-export function formatChange(value: number | null): string {
-  if (value === null) return '—';
-  return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
-}
+// Re-exported so the existing panels keep importing from one place; the
+// implementations live in lib/format so server components can use them too.
+export { formatUsd, formatPct, formatCount, changeClass, formatChange } from '@/lib/format';
