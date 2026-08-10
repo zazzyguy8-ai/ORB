@@ -1,0 +1,33 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Lets Render provision the service from the repository instead of a hand-filled
+# form, so the build and start commands cannot drift from what actually works.
+#
+# Secrets use `sync: false`: Render prompts for each value on first deploy and
+# stores it encrypted. Nothing sensitive belongs in this file — it is committed.
+services:
+  - type: web
+    name: orb-signal
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    # Always returns 200 and touches no external service, so Render's health
+    # check never fails because a third-party provider is having a bad day.
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: SOLANA_RPC_URL
+        value: https://api.mainnet-beta.solana.com

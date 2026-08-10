@@ -19,7 +19,7 @@ safe if you are unsure whether it completed.
 
 ## 2. Environment variables
 
-Set these on the host (Vercel → Project → Settings → Environment Variables).
+Set these on the host — Render → Environment, or Vercel → Settings → Environment Variables.
 
 **Required for full function:**
 
@@ -48,24 +48,56 @@ README.
 
 ## 3. Deploy
 
-Connect the repository and deploy the branch. `vercel.json` registers the cron
-entry; nothing else is needed at build time.
+`render.yaml` (Render) and `vercel.json` (Vercel) are both committed. Each host
+reads only its own file and ignores the other.
 
-> ⚠️ **Check your plan's cron frequency before trusting outcome tracking.**
-> `vercel.json` asks for `* * * * *` (every minute) because the first checkpoint
-> is at +5 minutes. Lower-tier plans restrict scheduled jobs to a much coarser
-> interval — often once per day — which would silently make the +5m, +15m and
-> +1h checkpoints useless while the +6h and +24h ones still land late. If your
-> plan restricts it, point an external scheduler at the endpoint instead:
->
-> ```
-> POST https://<host>/api/cron/snapshots
-> Authorization: Bearer <CRON_SECRET>
-> ```
->
-> Any minute-level scheduler works. The endpoint is idempotent — it claims only
-> checkpoints that are actually due, so an extra invocation costs one cheap
-> query and nothing else.
+### Render
+
+Use the Blueprint if possible — **New → Blueprint**, point it at the repo, and
+Render prompts for each secret. Otherwise fill the web-service form with:
+
+| Field | Value |
+|---|---|
+| Language | `Node` |
+| Branch | `main` |
+| Root Directory | *(leave empty)* |
+| Build Command | `npm install && npm run build` |
+| Start Command | `npm start` |
+| Health Check Path | `/api/health` |
+
+`.node-version` pins Node 22, so the build does not depend on whatever the host
+defaults to that month.
+
+> ⚠️ **The free instance sleeps.** Render spins a free web service down after
+> ~15 minutes of no traffic; the next request pays a cold start of roughly a
+> minute. For a product whose entire pitch is "an answer in seconds", the first
+> analysis after an idle period is the one that makes it look broken. Fine for
+> testing, not for anyone else's first impression — either move to a paid
+> instance or keep it warm by pinging `/api/health` every 10 minutes.
+
+### Vercel
+
+Import the repository; the framework is detected automatically. `vercel.json`
+registers the cron entry.
+
+### Outcome-tracking cron
+
+The first checkpoint is at +5 minutes, so the worker needs minute-level
+scheduling. **Neither host gives that away on a free plan** — Render's Cron Jobs
+are a separate paid service, and Vercel's lower tiers coarsen scheduled jobs to
+roughly daily. Both would leave the +5m, +15m and +1h checkpoints permanently
+unrecorded while the later ones land late.
+
+The portable answer is an external scheduler (cron-job.org and GitHub Actions
+both do minute-level on a free tier) pointed at:
+
+```
+POST https://<host>/api/cron/snapshots
+Authorization: Bearer <CRON_SECRET>
+```
+
+The endpoint is idempotent — it claims only checkpoints that are actually due,
+so an extra invocation costs one cheap query and nothing else.
 
 ## 4. Verify
 
