@@ -1,12 +1,32 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { display, mono } from '@/app/fonts';
 import './globals.css';
 
+const DESCRIPTION =
+  'Paste a Solana memecoin contract and get BUY / WATCH / AVOID with the evidence behind it, in seconds.';
+
 export const metadata: Metadata = {
-  title: 'ORB Signal — Paste a token. Get the signal.',
-  description:
-    'Paste a Solana memecoin contract and get BUY / WATCH / AVOID with the evidence behind it, in seconds.',
+  title: {
+    default: 'ORB Signal — Paste a token. Get the signal.',
+    template: '%s — ORB Signal',
+  },
+  description: DESCRIPTION,
+  applicationName: 'ORB Signal',
+  // The link gets pasted into group chats; without these the unfurl is blank.
+  openGraph: {
+    title: 'ORB Signal — Paste a token. Get the signal.',
+    description: DESCRIPTION,
+    type: 'website',
+    siteName: 'ORB Signal',
+  },
+  twitter: { card: 'summary_large_image', title: 'ORB Signal', description: DESCRIPTION },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#06070a',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

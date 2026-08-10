@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#06070a"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#1c2130" stroke-width="7"/>
+  <!-- Arc drawn to ~72% of the ring: the product is a confidence reading, so
+       the mark is a gauge rather than a letterform. -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#2ee88a" stroke-width="7"
+          stroke-linecap="round" stroke-dasharray="126" stroke-dashoffset="35"
+          transform="rotate(-90 32 32)"/>
+  <circle cx="32" cy="32" r="5" fill="#2ee88a"/>
+</svg>
