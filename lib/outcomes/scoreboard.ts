@@ -149,6 +149,78 @@ export function summarizeOutcomes(rows: OutcomeRow[], nowMs: number = Date.now()
   };
 }
 
+export interface ResolvedCall {
+  id: string;
+  address: string;
+  symbol: string | null;
+  decision: Decision;
+  score: number;
+  createdAt: string;
+  /** Recorded returns by checkpoint; absent keys are still pending. */
+  returns: Partial<Record<CheckpointKey, number>>;
+}
+
+/**
+ * Individual calls whose checkpoints have started resolving, newest first.
+ *
+ * Deliberately separate from the aggregate: a single call is a receipt, not a
+ * statistic, so it can be shown from the very first one without the sample-size
+ * gate. What it must not do is masquerade as performance — the page frames it
+ * as "recent calls", and the reader can see the count for themselves.
+ *
+ * Only ownerless analyses appear: a signed-in user's research is theirs.
+ */
+export async function fetchRecentResolvedCalls(limit = 12): Promise<ResolvedCall[]> {
+  const db = getDb();
+  if (!db) return [];
+
+  try {
+    const { data, error } = await db
+      .from('analyses')
+      .select(
+        'id,address,decision,score,created_at,tokens(symbol),analysis_outcomes(checkpoint,status,return_pct)',
+      )
+      .is('user_id', null)
+      .order('created_at', { ascending: false })
+      .limit(limit * 4);
+
+    if (error || !data) return [];
+
+    const calls: ResolvedCall[] = [];
+
+    for (const row of data as any[]) {
+      const outcomes = Array.isArray(row.analysis_outcomes) ? row.analysis_outcomes : [];
+      const returns: Partial<Record<CheckpointKey, number>> = {};
+
+      for (const outcome of outcomes) {
+        if (outcome.status !== 'recorded' || outcome.return_pct === null) continue;
+        returns[outcome.checkpoint as CheckpointKey] = Number(outcome.return_pct);
+      }
+
+      // Nothing has resolved yet: there is no outcome to show, and listing it
+      // would be a row of dashes pretending to be a result.
+      if (Object.keys(returns).length === 0) continue;
+      if (!DECISIONS.includes(row.decision)) continue;
+
+      calls.push({
+        id: row.id,
+        address: row.address,
+        symbol: row.tokens?.symbol ?? null,
+        decision: row.decision,
+        score: Number(row.score),
+        createdAt: row.created_at,
+        returns,
+      });
+
+      if (calls.length >= limit) break;
+    }
+
+    return calls;
+  } catch {
+    return [];
+  }
+}
+
 const MAX_ROWS = 5000;
 
 /**

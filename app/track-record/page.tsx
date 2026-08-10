@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchTrackRecord, type CheckpointStat, type TrackRecord } from '@/lib/outcomes/scoreboard';
+import {
+  fetchRecentResolvedCalls,
+  fetchTrackRecord,
+  type CheckpointStat,
+  type ResolvedCall,
+  type TrackRecord,
+} from '@/lib/outcomes/scoreboard';
 
 export const metadata: Metadata = {
   title: 'Track record',
@@ -35,7 +41,7 @@ const DECISION_STYLE = {
  * here as plainly as a good one.
  */
 export default async function TrackRecordPage() {
-  const record = await fetchTrackRecord();
+  const [record, calls] = await Promise.all([fetchTrackRecord(), fetchRecentResolvedCalls()]);
 
   return (
     <div className="space-y-6 py-2">
@@ -55,6 +61,8 @@ export default async function TrackRecordPage() {
       ) : (
         <Scoreboard record={record} />
       )}
+
+      {calls.length > 0 && <RecentCalls calls={calls} />}
 
       <Methodology />
     </div>
@@ -173,6 +181,86 @@ function Cell({ stat, minSamples }: { stat: CheckpointStat; minSamples: number }
         {(stat.positiveRate! * 100).toFixed(0)}% up · n={stat.samples}
       </span>
     </span>
+  );
+}
+
+/**
+ * Individual calls, newest first.
+ *
+ * Not subject to the sample-size gate, because a single call is a receipt
+ * rather than a statistic: it claims nothing about the next one. It is what
+ * makes the page useful on day two instead of in a month, and every row links
+ * to the analysis it came from so the claim can be checked.
+ */
+function RecentCalls({ calls }: { calls: ResolvedCall[] }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="label">Recent calls, individually</p>
+        <p className="text-xs text-slate-600">
+          Single calls, not a sample — each links to the analysis behind it.
+        </p>
+      </div>
+
+      <ul className="space-y-2">
+        {calls.map((call, index) => {
+          const style = DECISION_STYLE[call.decision];
+          return (
+            <li
+              key={call.id}
+              className="animate-fade-up"
+              style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
+            >
+              <Link
+                href={`/a/${call.id}`}
+                className={`card hover-lift flex flex-wrap items-center gap-x-4 gap-y-2 border-l-2 py-3 ${style.border}`}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-baseline gap-2 text-sm font-semibold text-slate-100">
+                    <span className={`font-mono ${style.text}`}>{call.decision}</span>
+                    {call.symbol ? `$${call.symbol}` : `${call.address.slice(0, 6)}…`}
+                    <span className="tabular font-mono text-[11px] font-normal text-slate-600">
+                      {call.score.toFixed(0)}/100
+                    </span>
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-600">
+                    {new Date(call.createdAt).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 gap-3">
+                  {(['m5', 'h1', 'h24'] as const).map((checkpoint) => {
+                    const value = call.returns[checkpoint];
+                    return (
+                      <div key={checkpoint} className="w-16 text-right">
+                        <p className="label">
+                          {checkpoint === 'm5' ? '5m' : checkpoint === 'h1' ? '1h' : '24h'}
+                        </p>
+                        <p
+                          className={`tabular font-mono text-sm ${
+                            value === undefined
+                              ? 'text-slate-700'
+                              : value > 0
+                                ? 'text-signal-buy'
+                                : value < 0
+                                  ? 'text-signal-avoid'
+                                  : 'text-slate-400'
+                          }`}
+                        >
+                          {value === undefined
+                            ? '—'
+                            : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
