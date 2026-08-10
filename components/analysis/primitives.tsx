@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
 /**
  * Small display primitives shared by the analysis panels.
  *
@@ -21,14 +25,28 @@ export function scoreText(score: number | null): string {
   return 'text-signal-avoid';
 }
 
-/** Horizontal 0..100 bar. */
+/**
+ * Horizontal 0..100 bar that sweeps out from zero on mount.
+ *
+ * Starting at zero and transitioning makes a screenful of bars resolve in a
+ * single motion, which reads as one result arriving rather than as a static
+ * table that was always there.
+ */
 export function Meter({ value, className = '' }: { value: number | null; className?: string }) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    if (value === null) return;
+    const id = requestAnimationFrame(() => setWidth(Math.max(2, Math.min(100, value))));
+    return () => cancelAnimationFrame(id);
+  }, [value]);
+
   return (
     <div className={`h-1.5 overflow-hidden rounded-full bg-ink-700 ${className}`}>
       {value !== null && (
         <div
-          className={`h-full rounded-full transition-[width] duration-700 ease-out ${scoreColor(value)}`}
-          style={{ width: `${Math.max(2, Math.min(100, value))}%` }}
+          className={`h-full rounded-full transition-[width] duration-[900ms] ease-out ${scoreColor(value)}`}
+          style={{ width: `${width}%` }}
         />
       )}
     </div>

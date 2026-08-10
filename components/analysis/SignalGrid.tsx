@@ -23,7 +23,7 @@ export function SignalGrid({ score }: { score: ScoreResult }) {
   const covered = score.categories.filter((c) => c.score !== null).length;
 
   return (
-    <section className="card animate-fade-up" style={{ animationDelay: '200ms' }}>
+    <section className="card hover-lift animate-fade-up" style={{ animationDelay: '200ms' }}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="label">Signal breakdown</p>
         <p className="tabular text-xs text-slate-500">

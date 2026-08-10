@@ -4,27 +4,30 @@ import type { AnalysisResult, Decision } from '@/lib/types/domain';
 
 const DECISION_STYLES: Record<
   Decision,
-  { text: string; border: string; wash: string; glow: string; note: string }
+  { text: string; border: string; wash: string; glow: string; rule: string; note: string }
 > = {
   BUY: {
     text: 'text-signal-buy',
     border: 'border-signal-buy/30',
     wash: 'from-signal-buy/[0.08]',
-    glow: 'drop-shadow-[0_0_28px_rgba(46,232,138,0.28)]',
+    glow: 'drop-shadow-[0_0_34px_rgba(46,232,138,0.35)]',
+    rule: 'via-signal-buy/70',
     note: 'Signals are positive and risk sits inside the model’s tolerance. Still a high-risk trade.',
   },
   WATCH: {
     text: 'text-signal-watch',
     border: 'border-signal-watch/30',
     wash: 'from-signal-watch/[0.08]',
-    glow: 'drop-shadow-[0_0_28px_rgba(255,192,67,0.24)]',
+    glow: 'drop-shadow-[0_0_34px_rgba(255,192,67,0.3)]',
+    rule: 'via-signal-watch/70',
     note: 'Interesting, but the evidence is incomplete, conflicting, or the risk is elevated.',
   },
   AVOID: {
     text: 'text-signal-avoid',
     border: 'border-signal-avoid/30',
     wash: 'from-signal-avoid/[0.08]',
-    glow: 'drop-shadow-[0_0_28px_rgba(255,90,82,0.24)]',
+    glow: 'drop-shadow-[0_0_34px_rgba(255,90,82,0.3)]',
+    rule: 'via-signal-avoid/70',
     note: 'Major red flags, or poor risk/reward on the available evidence.',
   },
 };
@@ -66,6 +69,13 @@ export function DecisionCard({ result }: { result: AnalysisResult }) {
       className={`animate-scale-in relative overflow-hidden rounded-2xl border ${style.border}
                   bg-gradient-to-b ${style.wash} to-transparent`}
     >
+      {/* Accent hairline along the top edge, keyed to the verdict — the colour
+          registers before any text is read. */}
+      <div
+        className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${style.rule}`}
+        aria-hidden
+      />
+
       <div className="p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <TokenIdentity
@@ -87,7 +97,9 @@ export function DecisionCard({ result }: { result: AnalysisResult }) {
           <ScoreRing value={result.confidence} decision={result.decision} />
           <div className="min-w-0">
             <p
-              className={`text-6xl font-black leading-none tracking-tightest sm:text-7xl ${style.text} ${style.glow}`}
+              className={`animate-scale-in text-6xl font-bold leading-none tracking-tightest
+                          sm:text-7xl ${style.text} ${style.glow}`}
+              style={{ animationDelay: '90ms' }}
             >
               {result.decision}
             </p>

@@ -11,59 +11,112 @@ html {
 }
 
 body {
-  @apply bg-ink-950 text-slate-300 antialiased;
-  /* Two offset glows rather than one centred wash — asymmetry reads as designed
-     rather than as a default gradient. */
+  @apply bg-ink-950 font-sans text-slate-300 antialiased;
+  /* Layered, not one flat wash: a fine grid for the instrument-panel read, then
+     two offset colour glows so the page has a light direction. */
   background-image:
-    radial-gradient(60rem 40rem at 15% -10%, rgba(46, 232, 138, 0.06), transparent 60%),
-    radial-gradient(50rem 35rem at 85% 0%, rgba(56, 132, 255, 0.07), transparent 60%);
+    linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    radial-gradient(55rem 38rem at 12% -8%, rgba(46, 232, 138, 0.07), transparent 62%),
+    radial-gradient(48rem 34rem at 88% 2%, rgba(56, 132, 255, 0.08), transparent 62%);
+  background-size:
+    56px 56px,
+    56px 56px,
+    100% 100%,
+    100% 100%;
   background-attachment: fixed;
 }
 
-/* Numeric columns should never jitter as digits change. */
+/* Film grain. Kills the flat-vector look that makes dark UIs feel cheap, at the
+   cost of one inline SVG and no JavaScript. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.24;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Numeric columns must never jitter as digits change. */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
   .card {
-    @apply rounded-2xl border border-ink-700/80 bg-ink-900/60 p-5 backdrop-blur-sm;
+    @apply relative rounded-2xl border border-ink-700/70 bg-ink-900/50 p-5 backdrop-blur-sm
+           transition-colors duration-300;
+  }
+
+  /* Hairline highlight along the top edge — the detail that reads as "crafted"
+     rather than "a div with a border". */
+  .card::before {
+    @apply pointer-events-none absolute inset-x-6 top-0 h-px;
+    content: '';
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.22), transparent);
   }
 
   .label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500;
+    @apply text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500;
   }
 
   .btn-primary {
-    @apply rounded-xl bg-slate-100 px-6 py-3.5 text-sm font-semibold tracking-tight text-ink-950
-           transition-all hover:bg-white hover:shadow-[0_0_30px_-8px_rgba(255,255,255,0.5)]
-           active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:shadow-none;
+    @apply relative overflow-hidden rounded-xl bg-slate-100 px-6 py-3.5 text-sm font-bold
+           tracking-tight text-ink-950 transition-all duration-200
+           hover:bg-white hover:shadow-[0_0_36px_-10px_rgba(255,255,255,0.65)]
+           active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40
+           disabled:hover:shadow-none;
   }
 
   .btn-ghost {
     @apply rounded-xl border border-ink-600 px-5 py-3 text-sm font-medium text-slate-300
-           transition-colors hover:border-ink-500 hover:bg-ink-800 hover:text-slate-100;
+           transition-all duration-200 hover:border-ink-500 hover:bg-ink-800
+           hover:text-slate-100 active:scale-[0.98];
   }
 
   .input {
-    @apply w-full rounded-xl border border-ink-600 bg-ink-900/80 px-4 py-3.5 font-mono text-sm
-           text-slate-100 transition-colors placeholder:text-slate-600
-           focus:border-slate-500 focus:bg-ink-900 focus:outline-none focus:ring-4 focus:ring-slate-500/10;
+    @apply w-full rounded-xl border border-ink-600 bg-ink-900/70 px-4 py-3.5 font-mono text-sm
+           text-slate-100 transition-all duration-200 placeholder:text-slate-600
+           focus:border-slate-500 focus:bg-ink-900 focus:outline-none focus:ring-4
+           focus:ring-slate-500/10;
   }
 
-  /* Small link/meta pill used for token socials and provider badges. */
   .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-600 bg-ink-800/60
-           px-2.5 py-1 text-xs text-slate-400 transition-colors hover:border-ink-500 hover:text-slate-200;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-600 bg-ink-800/50
+           px-2.5 py-1 text-xs text-slate-400 transition-all duration-200
+           hover:border-ink-500 hover:bg-ink-800 hover:text-slate-200;
   }
 
-  /* Loading placeholder that reads as "working", not "broken". */
   .skeleton {
-    @apply relative overflow-hidden rounded-lg bg-ink-800;
+    @apply relative overflow-hidden rounded-lg bg-ink-800/80;
   }
   .skeleton::after {
     @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r
-           from-transparent via-white/[0.06] to-transparent;
+           from-transparent via-white/[0.07] to-transparent;
     content: '';
+  }
+}
+
+@layer utilities {
+  /* Lifts a card slightly on hover without a layout shift. */
+  .hover-lift {
+    @apply transition-transform duration-300 will-change-transform hover:-translate-y-0.5;
   }
 }

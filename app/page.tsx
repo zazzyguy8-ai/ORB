@@ -11,26 +11,40 @@ export default function LandingPage() {
 
   return (
     <div className="space-y-24 py-8 sm:py-14">
-      <section className="text-center">
+      <section className="relative text-center">
+        {/* Wide, soft glow behind the headline so the type sits in light rather
+            than on a flat panel. Pointer-events off — it is pure atmosphere. */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-0 -z-10 h-64 w-[42rem]
+                     -translate-x-1/2 -translate-y-1/3 rounded-full
+                     bg-[radial-gradient(closest-side,rgba(46,232,138,0.16),transparent)] blur-2xl"
+          aria-hidden
+        />
         <span className="pill mx-auto mb-6 w-fit">
           <span className="h-1.5 w-1.5 rounded-full bg-signal-buy" aria-hidden />
           Solana · read-only · no wallet connection
         </span>
 
-        <h1 className="mx-auto max-w-3xl text-[2.6rem] font-black leading-[1.05] tracking-tightest text-slate-50 sm:text-6xl">
+        <h1 className="animate-fade-up mx-auto max-w-3xl text-[2.7rem] font-bold leading-[1.02] tracking-tightest text-slate-50 sm:text-[4.2rem]">
           AI memecoin analysis
           <br />
-          <span className="bg-gradient-to-r from-signal-buy to-sky-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-signal-buy via-emerald-300 to-sky-400 bg-clip-text text-transparent">
             in seconds
           </span>
         </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
+        <p
+          className="animate-fade-up mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400"
+          style={{ animationDelay: '80ms' }}
+        >
           Paste a token contract. Get BUY / WATCH / AVOID with the evidence behind it — instead of
           checking five tools by hand.
         </p>
 
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+        <div
+          className="animate-fade-up mt-9 flex flex-wrap items-center justify-center gap-3"
+          style={{ animationDelay: '160ms' }}
+        >
           <Link href="/app" className="btn-primary">
             TRY FREE
           </Link>
@@ -149,7 +163,7 @@ export default function LandingPage() {
 
 function Feature({ index, title, body }: { index: string; title: string; body: string }) {
   return (
-    <div className="card transition-colors hover:border-ink-600">
+    <div className="card hover-lift hover:border-ink-600">
       <span className="tabular font-mono text-xs text-slate-600">{index}</span>
       <h3 className="mt-2 font-semibold tracking-tight text-slate-100">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p>

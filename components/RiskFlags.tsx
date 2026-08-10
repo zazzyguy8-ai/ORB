@@ -21,7 +21,7 @@ const SEVERITY_STYLES: Record<Severity, { chip: string; row: string }> = {
 
 export function RiskFlags({ flags, unavailable }: { flags: RiskFlag[]; unavailable: string[] }) {
   return (
-    <section className="card animate-fade-up" style={{ animationDelay: '160ms' }}>
+    <section className="card hover-lift animate-fade-up" style={{ animationDelay: '160ms' }}>
       <div className="flex items-baseline justify-between">
         <p className="label">Risk flags</p>
         {flags.length > 0 && (
