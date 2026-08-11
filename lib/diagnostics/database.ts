@@ -22,6 +22,7 @@ export const EXPECTED_TABLES = [
   'wallet_events',
   'price_snapshots',
   'analysis_outcomes',
+  'discoveries',
   'decision_performance',
 ] as const;
 

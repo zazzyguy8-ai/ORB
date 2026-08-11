@@ -56,7 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 onto two lines pushes the whole page down on every screen. */}
             <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto sm:gap-1">
               <NavLink href="/app">Analyze</NavLink>
-              <NavLink href="/track-record">Track record</NavLink>
+              <NavLink href="/discover">Scanner</NavLink>
+              <NavLink href="/track-record">Record</NavLink>
               <NavLink href="/history">History</NavLink>
               <NavLink href="/login">Sign in</NavLink>
             </div>

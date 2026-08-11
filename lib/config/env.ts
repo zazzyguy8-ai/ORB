@@ -33,6 +33,14 @@ export const env = {
 
   cronSecret: str('CRON_SECRET'),
   telegramBotToken: str('TELEGRAM_BOT_TOKEN'),
+  /** Channel or chat the scanner publishes to. Unset means it publishes nowhere. */
+  telegramChatId: str('TELEGRAM_CHAT_ID'),
+  /**
+   * Shared secret Telegram echoes back in X-Telegram-Bot-Api-Secret-Token.
+   * The webhook refuses every request unless this is set and matches — the URL
+   * is otherwise a public endpoint that runs analyses on demand.
+   */
+  telegramWebhookSecret: str('TELEGRAM_WEBHOOK_SECRET'),
 
   /** Per-provider network deadline. Nothing in the hot path may exceed it. */
   providerTimeoutMs: num('PROVIDER_TIMEOUT_MS', 2500),

@@ -17,7 +17,12 @@ evaluation view, and a trigger that keeps `public.users` in step with
 `auth.users`. It is idempotent (`if not exists` throughout), so re-running it is
 safe if you are unsure whether it completed.
 
-Then run `supabase/migrations/0002_outcome_staleness.sql` the same way. It adds
+Then run `supabase/migrations/0002_outcome_staleness.sql` and
+`supabase/migrations/0003_discoveries.sql` the same way. 0003 adds the scanner's
+shortlist table; without it the scanner still runs and still posts to Telegram,
+but `/discover` stays empty because there is nowhere to record what it found.
+
+About 0002: It adds
 the `stale` outcome status and a `late_by_seconds` column, which is what stops a
 late worker from writing a four-hour price into a row labelled "+5 min". Also
 idempotent. Until it is applied, late checkpoints are still priced and recorded
@@ -113,6 +118,44 @@ checkpoints. What it cannot do is cover a quiet stretch: checkpoints that come
 due while nobody is using the site are marked `stale` rather than backdated, and
 they are excluded from the track record. A real scheduler is what converts that
 loss into data.
+
+### Scanner
+
+```
+POST https://<host>/api/cron/scan
+Authorization: Bearer <CRON_SECRET>
+```
+
+Walks the public token listings, runs the full pipeline over up to thirty
+candidates, and keeps only the ones that clear the shortlist bar. Every few
+hours is the right cadence — it re-reads the same feeds otherwise, and tokens
+analysed in the last three hours are skipped anyway. One run costs roughly
+120 upstream calls in the worst case, so do not schedule it by the minute.
+
+### Telegram bot
+
+Two independent halves; either can be used without the other.
+
+**Outbound** (the scanner posts its shortlist to a channel): set
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. With no chat id set it publishes
+nowhere, which is the default — adding a bot token for the DM bot must not
+silently start broadcasting.
+
+**Inbound** (people send the bot an address and get the verdict): set
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_SECRET` to a long random string, then
+register the webhook once:
+
+```bash
+curl -sX POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -H 'content-type: application/json' \
+  -d "{\"url\":\"https://<host>/api/telegram/webhook\",\"secret_token\":\"$TELEGRAM_WEBHOOK_SECRET\"}"
+```
+
+The endpoint refuses every request unless the secret is set *and* matches the
+header Telegram echoes back. Unset means the bot is off, not open — it runs
+analyses on demand, so an unauthenticated version of it would be a free
+compute faucet. Each chat is rate limited on the same daily counter as an
+anonymous web visitor.
 
 ## 4. Verify
 

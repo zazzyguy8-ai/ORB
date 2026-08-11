@@ -262,6 +262,98 @@ export async function getPreviousAnalysis(
   return rows[0] ?? null;
 }
 
+export interface DiscoveryRow {
+  id: number;
+  analysisId: string | null;
+  address: string;
+  symbol: string | null;
+  name: string | null;
+  decision: string;
+  score: number;
+  confidence: number | null;
+  liquidityUsd: number | null;
+  marketCapUsd: number | null;
+  ageMinutes: number | null;
+  reasons: string[];
+  source: string;
+  foundAt: string;
+}
+
+/**
+ * Records a scanner shortlist. Best-effort like everything else here: a scan
+ * that cannot write its findings still returned them to its caller, and the
+ * unique index means a token qualifying twice in a day is a no-op rather than a
+ * duplicate row.
+ */
+export async function recordDiscoveries(
+  entries: Omit<DiscoveryRow, 'id' | 'foundAt'>[],
+): Promise<number> {
+  const db = getDb();
+  if (!db || entries.length === 0) return 0;
+
+  try {
+    const { error } = await db.from('discoveries').upsert(
+      entries.map((entry) => ({
+        analysis_id: entry.analysisId,
+        chain: 'solana',
+        address: entry.address,
+        symbol: entry.symbol,
+        name: entry.name,
+        decision: entry.decision,
+        score: Number(entry.score.toFixed(2)),
+        confidence: entry.confidence,
+        liquidity_usd: entry.liquidityUsd,
+        market_cap_usd: entry.marketCapUsd,
+        age_minutes: entry.ageMinutes === null ? null : Math.round(entry.ageMinutes),
+        reasons: entry.reasons,
+        source: entry.source,
+      })),
+      { onConflict: 'address,found_day', ignoreDuplicates: true },
+    );
+
+    return error ? 0 : entries.length;
+  } catch {
+    return 0;
+  }
+}
+
+/** The scanner feed, newest first. */
+export async function listDiscoveries(limit = 30): Promise<DiscoveryRow[]> {
+  const db = getDb();
+  if (!db) return [];
+
+  try {
+    const { data, error } = await db
+      .from('discoveries')
+      .select(
+        'id,analysis_id,address,symbol,name,decision,score,confidence,liquidity_usd,market_cap_usd,age_minutes,reasons,source,found_at',
+      )
+      .order('found_at', { ascending: false })
+      .limit(Math.min(limit, 100));
+
+    if (error || !data) return [];
+
+    return (data as any[]).map((row) => ({
+      id: row.id,
+      analysisId: row.analysis_id ?? null,
+      address: row.address,
+      symbol: row.symbol ?? null,
+      name: row.name ?? null,
+      decision: row.decision,
+      score: Number(row.score),
+      confidence: row.confidence === null ? null : Number(row.confidence),
+      liquidityUsd: row.liquidity_usd === null ? null : Number(row.liquidity_usd),
+      marketCapUsd: row.market_cap_usd === null ? null : Number(row.market_cap_usd),
+      ageMinutes: row.age_minutes === null ? null : Number(row.age_minutes),
+      reasons: Array.isArray(row.reasons) ? row.reasons : [],
+      source: row.source,
+      foundAt: row.found_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export interface SharedOutcome {
   checkpoint: CheckpointKey;
   status: string;
