@@ -12,6 +12,13 @@ what turns "should work" into "does work".
 Supabase → **SQL Editor** → paste the whole of `supabase/migrations/0001_init.sql`
 → Run.
 
+**Clear the editor between migrations — Cmd/Ctrl+A, delete — before pasting the
+next one.** The editor runs the whole tab, and pasting appends at the cursor. If
+the cursor sits at the end of a comment line, everything you paste after it is
+swallowed by that `--` and Postgres reports a syntax error at a line that looks
+fine. The migration files put their statements first and their notes last for
+this reason, but a leftover tab will still bite.
+
 It creates eight tables, their indexes, RLS policies, the `decision_performance`
 evaluation view, and a trigger that keeps `public.users` in step with
 `auth.users`. It is idempotent (`if not exists` throughout), so re-running it is
