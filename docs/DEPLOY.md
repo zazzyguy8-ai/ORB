@@ -107,8 +107,28 @@ are a separate paid service, and Vercel's lower tiers coarsen scheduled jobs to
 roughly daily. Both would leave the +5m, +15m and +1h checkpoints permanently
 unrecorded while the later ones land late.
 
-The portable answer is an external scheduler (cron-job.org and GitHub Actions
-both do minute-level on a free tier) pointed at:
+**This repository ships one.** `.github/workflows/cron.yml` runs both workers
+from GitHub Actions and needs two repository settings — Settings → Secrets and
+variables → Actions:
+
+| | Name | Value |
+|---|---|---|
+| Variable | `ORB_BASE_URL` | the deployment's URL, no trailing slash |
+| Secret | `CRON_SECRET` | the same value as the deployment's `CRON_SECRET` |
+
+Both workers can then be triggered by hand from the Actions tab (Run workflow →
+pick snapshots or scan), which is the fastest way to confirm they work. A
+non-2xx response fails the run and prints the body, so a broken deploy shows up
+in the Actions tab rather than silently doing nothing every five minutes.
+
+Two limits of Actions specifically: its cron has a **five-minute floor and is
+often late** under load, so some +5m checkpoints will be priced too late and
+recorded as stale rather than backdated — that is the designed behaviour, but if
+the m5 column stays empty this is why. And scheduled workflows are disabled
+after 60 days without a commit.
+
+If the +5m horizon matters, replace it with an external scheduler that ticks
+every minute (cron-job.org is free), pointed at:
 
 ```
 POST https://<host>/api/cron/snapshots

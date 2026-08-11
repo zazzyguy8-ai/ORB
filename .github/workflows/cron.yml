@@ -1,0 +1,96 @@
+# Scheduled workers, run from GitHub Actions.
+#
+# The host's free tier has no minute-level scheduler, and these two endpoints
+# need one. Actions is used instead of an external cron service because it is
+# already attached to this repository: two repository settings and it runs,
+# with a log of every invocation in the Actions tab.
+#
+# What it needs (Settings → Secrets and variables → Actions):
+#   - Variable  ORB_BASE_URL   e.g. https://orb-signal.onrender.com  (no trailing slash)
+#   - Secret    CRON_SECRET    the same value as the deployment's CRON_SECRET
+#
+# Known limits, both worth understanding before relying on this:
+#
+#   - GitHub's cron has a five-minute floor and is frequently late under load,
+#     sometimes by ten minutes or more. The +5m checkpoint will therefore
+#     sometimes be priced too late and recorded as stale rather than backdated.
+#     That is the designed behaviour, not a failure — but if the m5 column on
+#     the track record stays empty, this is why, and an external scheduler with
+#     a one-minute tick is the fix.
+#   - Scheduled workflows are disabled automatically after 60 days without a
+#     commit to the repository.
+
+name: Cron
+
+on:
+  schedule:
+    # Outcome checkpoints. As often as GitHub allows.
+    - cron: '*/5 * * * *'
+    # Scanner. Every three hours — it re-reads the same listing feeds otherwise,
+    # and one run costs roughly 120 upstream calls.
+    - cron: '17 */3 * * *'
+  # So both can be triggered by hand from the Actions tab to test them.
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which worker to run
+        required: true
+        default: snapshots
+        type: choice
+        options: [snapshots, scan]
+
+# Never let two runs of the same worker overlap; a slow scan must not be joined
+# by the next one.
+concurrency:
+  group: cron-${{ github.event.schedule || inputs.job }}
+  cancel-in-progress: false
+
+jobs:
+  snapshots:
+    name: Record due outcome checkpoints
+    if: github.event.schedule == '*/5 * * * *' || inputs.job == 'snapshots'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/snapshots
+        env:
+          BASE_URL: ${{ vars.ORB_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the ORB_BASE_URL variable and the CRON_SECRET secret in repository settings."
+            exit 1
+          fi
+
+          # --fail-with-body so a non-2xx prints what the server said and then
+          # fails the run: a broken deploy should be visible in the Actions tab
+          # rather than silently doing nothing every five minutes.
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -X POST "$BASE_URL/api/cron/snapshots" \
+            -H "authorization: Bearer $CRON_SECRET"
+          echo
+
+  scan:
+    name: Scan the listing feeds
+    if: github.event.schedule == '17 */3 * * *' || inputs.job == 'scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: POST /api/cron/scan
+        env:
+          BASE_URL: ${{ vars.ORB_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the ORB_BASE_URL variable and the CRON_SECRET secret in repository settings."
+            exit 1
+          fi
+
+          # The instance sleeps on the free tier and a cold start can take a
+          # minute; the scan itself then runs up to thirty analyses.
+          curl --silent --show-error --fail-with-body --max-time 420 \
+            -X POST "$BASE_URL/api/cron/scan" \
+            -H "authorization: Bearer $CRON_SECRET"
+          echo
