@@ -23,6 +23,7 @@ export const EXPECTED_TABLES = [
   'price_snapshots',
   'analysis_outcomes',
   'discoveries',
+  'waitlist',
   'decision_performance',
 ] as const;
 

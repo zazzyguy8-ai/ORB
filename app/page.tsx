@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Orb } from '@/components/Orb';
 import { Reveal } from '@/components/Reveal';
+import { Pricing } from '@/components/landing/Pricing';
 import {
   Faq,
   FinalCta,
@@ -8,7 +9,7 @@ import {
   TheProblem,
   TheReceipt,
 } from '@/components/landing/Sections';
-import { formatPrice, getPlans } from '@/lib/config/plans';
+import { getPlans } from '@/lib/config/plans';
 
 /**
  * Landing page (spec §23). One message, one action, one honest example.
@@ -156,46 +157,8 @@ export default function LandingPage() {
 
       <TheReceipt />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Pricing                                                             */}
-      {/* ------------------------------------------------------------------ */}
       <Reveal>
-        <section>
-          <p className="label text-center">Pricing</p>
-          <div className="mx-auto mt-6 grid max-w-2xl gap-4 sm:grid-cols-2">
-            {Object.values(plans).map((plan) => (
-              <div
-                key={plan.id}
-                className={`card hover-lift card-hover flex h-full flex-col ${
-                  plan.id === 'pro' ? 'ring-gradient' : ''
-                }`}
-              >
-                <div className="flex items-baseline justify-between">
-                  <h3 className="font-semibold text-white">{plan.name}</h3>
-                  <p className="text-sm font-medium text-iris-200">{formatPrice(plan)}</p>
-                </div>
-                <p className="tabular mt-1 font-mono text-xs text-slate-500">
-                  {plan.analysesPerDay} analyses per day
-                </p>
-                <ul className="mt-5 space-y-2 text-sm text-slate-400">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2.5">
-                      <span className="text-iris-300" aria-hidden>
-                        ✓
-                      </span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                {plan.id !== 'pro' && (
-                  <Link href="/app" className="btn-ghost mt-6 w-full text-center">
-                    Start free
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        <Pricing plans={Object.values(plans)} />
       </Reveal>
 
       <Faq />

@@ -24,8 +24,8 @@ evaluation view, and a trigger that keeps `public.users` in step with
 `auth.users`. It is idempotent (`if not exists` throughout), so re-running it is
 safe if you are unsure whether it completed.
 
-Then run `supabase/migrations/0002_outcome_staleness.sql` and
-`supabase/migrations/0003_discoveries.sql` the same way. 0003 adds the scanner's
+Then run `0002_outcome_staleness.sql`, `0003_discoveries.sql` and
+`0004_waitlist.sql` the same way, in that order. 0003 adds the scanner's
 shortlist table; without it the scanner still runs and still posts to Telegram,
 but `/discover` stays empty because there is nowhere to record what it found.
 
