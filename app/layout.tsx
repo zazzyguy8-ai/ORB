@@ -83,47 +83,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 /**
- * The moving light behind everything.
+ * The light behind everything: a fixed, pointer-events-none backdrop.
  *
- * Fixed to the viewport and pointer-events-none, so it costs nothing but paint:
- * three blurred fields on different periods plus a masked grid and grain. It is
- * the entire difference between "dark theme" and a room with a light in it.
+ * It used to be three big blurred elements drifting on different periods. That
+ * looked wonderful and ran at 3.6fps on a throttled laptop doing nothing at
+ * all — a large gaussian blur is re-rasterised whenever anything about the
+ * layer changes, and with three of them the compositor never caught up.
+ *
+ * The colour is now painted as plain radial gradients in CSS (see .aurora), so
+ * it rasterises once and costs nothing per frame. A blurred circle and a radial
+ * gradient are nearly the same image; only one of them is free.
+ *
+ * The page gets its life from motion that is genuinely cheap instead: the hero
+ * orbits, the gradient headline, hover transitions, scroll reveals.
  */
 function Aurora() {
   return (
     <div className="aurora" aria-hidden>
-      <div
-        className="aurora__blob animate-drift"
-        style={{
-          top: '-18%',
-          left: '-10%',
-          width: '58vw',
-          height: '58vw',
-          background: 'radial-gradient(circle, rgba(135,103,240,0.55), transparent 68%)',
-        }}
-      />
-      <div
-        className="aurora__blob animate-drift-slow"
-        style={{
-          top: '-8%',
-          right: '-14%',
-          width: '52vw',
-          height: '52vw',
-          background: 'radial-gradient(circle, rgba(69,215,245,0.3), transparent 68%)',
-          animationDelay: '-8s',
-        }}
-      />
-      <div
-        className="aurora__blob animate-drift"
-        style={{
-          bottom: '-30%',
-          left: '25%',
-          width: '62vw',
-          height: '62vw',
-          background: 'radial-gradient(circle, rgba(90,60,189,0.42), transparent 70%)',
-          animationDelay: '-16s',
-        }}
-      />
       <div className="aurora__grid" />
       <div className="aurora__grain" />
     </div>

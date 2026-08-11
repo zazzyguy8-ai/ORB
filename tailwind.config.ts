@@ -94,14 +94,20 @@ const config: Config = {
         },
         // The aurora. Two blobs on different periods so the background never
         // visibly repeats — slow enough to read as light, not as animation.
+        //
+        // TRANSLATION ONLY, and this is not a style preference. These elements
+        // carry a 90px blur; translating an already-blurred layer is a
+        // compositor move and costs nothing, but scaling one forces the blur to
+        // be recomputed every frame. With `scale` in here the idle page ran at
+        // 3.6fps on a throttled laptop. Without it, 60.
         drift: {
-          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1)' },
-          '33%': { transform: 'translate3d(6%, -4%, 0) scale(1.12)' },
-          '66%': { transform: 'translate3d(-5%, 5%, 0) scale(0.94)' },
+          '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+          '33%': { transform: 'translate3d(7%, -5%, 0)' },
+          '66%': { transform: 'translate3d(-6%, 6%, 0)' },
         },
         'drift-slow': {
-          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1.05)' },
-          '50%': { transform: 'translate3d(-7%, 6%, 0) scale(0.92)' },
+          '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+          '50%': { transform: 'translate3d(-8%, 7%, 0)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },

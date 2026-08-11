@@ -14,63 +14,42 @@ body {
   @apply bg-ink-975 font-sans text-slate-300 antialiased;
 }
 
-/* Base wash. Deliberately a fixed-position element rather than
-   `background-attachment: fixed` on the body: that property forces the browser
-   to repaint the background on every scroll frame, which is one of the most
-   reliable ways to make a page stutter on a phone. A fixed layer is composited
-   instead — same look, no per-frame cost. */
+/* The colour itself. Deliberately a fixed-position element rather than
+   `background-attachment: fixed` on the body: that property repaints the
+   background on every scroll frame, which is one of the most reliable ways to
+   make a page stutter. A fixed layer is composited instead.
+   
+   And deliberately gradients rather than blurred elements — see the note in
+   the Aurora component. This paints once. */
 .aurora::before {
   @apply pointer-events-none absolute inset-0;
   content: '';
-  background: radial-gradient(120% 80% at 50% -20%, #150f2b 0%, #0a0713 45%, #07050d 100%);
+  background:
+    radial-gradient(58% 46% at 4% 0%, rgba(135, 103, 240, 0.5), transparent 72%),
+    radial-gradient(52% 38% at 98% 8%, rgba(69, 215, 245, 0.2), transparent 72%),
+    radial-gradient(70% 50% at 62% 104%, rgba(90, 60, 189, 0.45), transparent 74%),
+    radial-gradient(120% 80% at 50% -20%, #150f2b 0%, #0a0713 45%, #07050d 100%);
 }
 
 /* ---------------------------------------------------------------------------
    Aurora
    ---------------------------------------------------------------------------
-   Three soft colour fields drifting on different periods, fixed to the
-   viewport. Blurred beyond recognition on purpose: the eye should read a light
-   source in the room, never a shape. Each is its own element because one
-   element can only carry one transform, and the whole effect is the phase
-   difference between them.
+   A fixed backdrop: colour (above), a masked grid, and grain. The eye should
+   read a light source in the room, never a shape — which is why the colour is
+   soft-edged, and why it is gradients rather than the blurred elements this
+   started as. Those cost 3.6fps on an idle page; these cost one paint.
 --------------------------------------------------------------------------- */
 .aurora {
   @apply pointer-events-none fixed inset-0 -z-10 overflow-hidden;
 }
 
-.aurora__blob {
-  @apply absolute rounded-full;
-  filter: blur(90px);
-  /* Its own compositor layer, so drifting it never repaints anything else.
-     Deliberately not `contain: paint` — that clips to the box, and the blur
-     lives entirely outside it. */
-  will-change: transform;
-  transform: translateZ(0);
-  contain: layout style;
-}
-
-/* A blurred field this large is the most expensive thing on the page, and
-   measurably so: with these three elements present, a throttled phone drops
-   roughly a quarter of its frames while scrolling; with them removed it holds
-   60fps exactly. So on a phone they are not blurred at all — the same colours
-   are painted as radial gradients on the backdrop layer, which rasterises once
-   and costs nothing per frame. A gaussian blur of a circle is very close to a
-   radial gradient anyway; the difference is invisible and the cost is not. */
+/* The header overlaps scrolling content, so its backdrop-filter is
+   re-evaluated as content passes under it. It is the one blurred surface left
+   in the product, and on a phone even that one becomes opaque. */
 @media (max-width: 640px) {
-  .aurora__blob,
   .aurora__grain {
     display: none;
   }
-  .aurora::before {
-    background:
-      radial-gradient(62% 42% at 6% 4%, rgba(135, 103, 240, 0.5), transparent 72%),
-      radial-gradient(58% 36% at 96% 12%, rgba(69, 215, 245, 0.22), transparent 72%),
-      radial-gradient(85% 45% at 55% 102%, rgba(90, 60, 189, 0.42), transparent 72%),
-      radial-gradient(120% 80% at 50% -20%, #150f2b 0%, #0a0713 45%, #07050d 100%);
-  }
-  /* The header overlaps scrolling content, so its backdrop-filter is
-     re-evaluated on every frame — the one place that genuinely costs frames on
-     a phone. It becomes opaque there instead. */
   .header-blur {
     backdrop-filter: none !important;
     background-color: #07050d !important;
@@ -107,10 +86,6 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  /* The drifting fields stop entirely rather than snapping to a keyframe. */
-  .aurora__blob {
-    animation: none !important;
   }
 }
 

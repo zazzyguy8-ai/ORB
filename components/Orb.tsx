@@ -31,7 +31,9 @@ export function Orb({ className = '' }: { className?: string }) {
         <div className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-signal-watch shadow-[0_0_12px_rgba(255,199,92,0.9)]" />
       </div>
 
-      <Logo className="absolute inset-[20%] animate-float drop-shadow-[0_18px_40px_rgba(59,22,201,0.6)]" />
+      {/* No filter on the floating element: a drop-shadow would be recomputed
+          on every frame of the float. The bloom above does that job already. */}
+      <Logo className="absolute inset-[20%] animate-float" />
     </div>
   );
 }

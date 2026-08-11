@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { Orb } from '@/components/Orb';
 import { Reveal } from '@/components/Reveal';
+import {
+  Faq,
+  FinalCta,
+  HowItWorks,
+  TheProblem,
+  TheReceipt,
+} from '@/components/landing/Sections';
 import { formatPrice, getPlans } from '@/lib/config/plans';
 
 /**
@@ -143,34 +150,11 @@ export default function LandingPage() {
         </section>
       </Reveal>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Why it can be trusted                                               */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            index: '01',
-            title: 'One paste, one answer',
-            body: 'Market data, security checks, holder concentration and creator risk are collected in parallel and reduced to a single call.',
-          },
-          {
-            index: '02',
-            title: 'The numbers are ours, not the model’s',
-            body: 'Every metric is computed deterministically before the AI sees anything. The model selects and phrases evidence — it never invents a figure.',
-          },
-          {
-            index: '03',
-            title: 'Scored against what happens next',
-            body: 'Every analysis records the price at +5m, +15m, +1h, +6h and +24h, so the model can be measured instead of trusted.',
-            href: '/track-record',
-            cta: 'See the scoreboard',
-          },
-        ].map((feature, index) => (
-          <Reveal key={feature.index} delay={index * 90}>
-            <Feature {...feature} />
-          </Reveal>
-        ))}
-      </section>
+      <TheProblem />
+
+      <HowItWorks />
+
+      <TheReceipt />
 
       {/* ------------------------------------------------------------------ */}
       {/* Pricing                                                             */}
@@ -182,7 +166,7 @@ export default function LandingPage() {
             {Object.values(plans).map((plan) => (
               <div
                 key={plan.id}
-                className={`card hover-lift card-hover h-full ${
+                className={`card hover-lift card-hover flex h-full flex-col ${
                   plan.id === 'pro' ? 'ring-gradient' : ''
                 }`}
               >
@@ -203,11 +187,20 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
+                {plan.id !== 'pro' && (
+                  <Link href="/app" className="btn-ghost mt-6 w-full text-center">
+                    Start free
+                  </Link>
+                )}
               </div>
             ))}
           </div>
         </section>
       </Reveal>
+
+      <Faq />
+
+      <FinalCta />
 
       {/* ------------------------------------------------------------------ */}
       {/* The disclaimer, given its own weight rather than hidden in a footer  */}
@@ -222,36 +215,6 @@ export default function LandingPage() {
           </p>
         </section>
       </Reveal>
-    </div>
-  );
-}
-
-function Feature({
-  index,
-  title,
-  body,
-  href,
-  cta,
-}: {
-  index: string;
-  title: string;
-  body: string;
-  href?: string;
-  cta?: string;
-}) {
-  return (
-    <div className="card card-hover hover-lift flex h-full flex-col">
-      <span className="tabular font-mono text-xs text-iris-300/50">{index}</span>
-      <h3 className="mt-2.5 font-semibold tracking-tight text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-400">{body}</p>
-      {href && cta && (
-        <Link
-          href={href}
-          className="mt-4 text-sm font-medium text-iris-300 transition-colors hover:text-iris-100"
-        >
-          {cta} →
-        </Link>
-      )}
     </div>
   );
 }
